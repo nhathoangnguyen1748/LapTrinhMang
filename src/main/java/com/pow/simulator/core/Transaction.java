@@ -40,6 +40,24 @@ public record Transaction(
         return new Transaction(id, sender, recipient, amount, now);
     }
 
+    /**
+     * Serializes this transaction into a clean tab-delimited string for network transport.
+     */
+    public String toNetworkString() {
+        return txId + "\t" + sender + "\t" + recipient + "\t" + amount + "\t" + timestamp;
+    }
+
+    /**
+     * Deserializes a transaction from a network string.
+     */
+    public static Transaction fromNetworkString(String raw) {
+        String[] parts = raw.split("\t", -1);
+        if (parts.length != 5) {
+            throw new IllegalArgumentException("Invalid transaction network string: " + raw);
+        }
+        return new Transaction(parts[0], parts[1], parts[2], Double.parseDouble(parts[3]), Long.parseLong(parts[4]));
+    }
+
     @Override
     public String toString() {
         return String.format("Tx[%s: %s -> %s | %.4f BTC]",

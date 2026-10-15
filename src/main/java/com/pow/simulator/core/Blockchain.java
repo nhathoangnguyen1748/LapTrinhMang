@@ -118,6 +118,50 @@ public class Blockchain {
     }
 
     /**
+     * Replaces the local chain with a valid, longer chain (Nakamoto consensus rule).
+     */
+    public synchronized boolean replaceChain(List<Block> newChain) {
+        if (newChain == null || newChain.size() <= this.chain.size()) {
+            return false;
+        }
+        this.chain.clear();
+        this.chain.addAll(newChain);
+        return true;
+    }
+
+    /**
+     * Serializes the entire sequence of blocks for network transmission.
+     */
+    public synchronized String serializeChain() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < chain.size(); i++) {
+            sb.append(chain.get(i).toNetworkString());
+            if (i < chain.size() - 1) {
+                sb.append("\n---BLOCK_DELIMITER---\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Deserializes a full blockchain from network string representation.
+     */
+    public static List<Block> deserializeBlocks(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+        String[] blockChunks = raw.split("\n---BLOCK_DELIMITER---\n");
+        List<Block> parsedBlocks = new ArrayList<>();
+        for (String chunk : blockChunks) {
+            String trimmed = chunk.trim();
+            if (!trimmed.isEmpty()) {
+                parsedBlocks.add(Block.fromNetworkString(trimmed));
+            }
+        }
+        return parsedBlocks;
+    }
+
+    /**
      * Replaces a block at an index with a modified block (used specifically by attack simulators).
      */
     public synchronized void setBlockForSimulation(int index, Block modifiedBlock) {
