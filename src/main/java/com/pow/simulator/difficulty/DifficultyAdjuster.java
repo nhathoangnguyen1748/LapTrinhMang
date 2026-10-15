@@ -107,7 +107,13 @@ public class DifficultyAdjuster {
         Block latestBlock = blocks.get(size - 1);
         Block epochStartBlock = blocks.get(size - epochSize);
 
-        long actualTimeMs = Math.max(1L, latestBlock.timestamp() - epochStartBlock.timestamp());
+        long actualTimeMs;
+        if (size == epochSize && epochStartBlock.index() == 0 && size > 1) {
+            long elapsedMined = latestBlock.timestamp() - blocks.get(1).timestamp();
+            actualTimeMs = Math.max(1L, (elapsedMined * epochSize) / Math.max(1, epochSize - 1));
+        } else {
+            actualTimeMs = Math.max(1L, latestBlock.timestamp() - epochStartBlock.timestamp());
+        }
         long expectedTimeMs = targetBlockTimeMs * epochSize;
 
         // Ratio > 1.0 means mined faster than expected -> increase difficulty

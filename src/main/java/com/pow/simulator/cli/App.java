@@ -8,6 +8,7 @@ import com.pow.simulator.core.Block;
 import com.pow.simulator.core.Blockchain;
 import com.pow.simulator.core.Transaction;
 import com.pow.simulator.difficulty.DifficultyAdjuster;
+import com.pow.simulator.network.NetworkDemo;
 import com.pow.simulator.validation.BlockchainValidator;
 import com.pow.simulator.validation.ValidationResult;
 
@@ -93,22 +94,26 @@ public class App {
         BenchmarkRunner.BenchmarkReport benchmarkReport = benchmarkRunner.runBenchmark(20, 10);
         benchmarkReport.printSummaryTable();
 
+        System.out.println("\n[PHASE 5: DISTRIBUTED P2P TCP SOCKET NETWORK CLUSTER]");
+        NetworkDemo.runDemo();
+
         System.out.println("\n=============================================================");
-        System.out.println("   PoW ENGINE SIMULATION & BENCHMARK COMPLETED SUCCESSFULLY  ");
+        System.out.println("   PoW ENGINE & P2P NETWORK CLUSTER COMPLETED SUCCESSFULLY   ");
         System.out.println("=============================================================\n");
     }
 
     private static void printBanner() {
         System.out.println("""
             =============================================================
-               PRODUCTION PROOF-OF-WORK (PoW) ENGINE & LEDGER SIMULATOR
-                        JDK 21+  |  Maven  |  NetBeans Ready
+             PRODUCTION P2P PROOF-OF-WORK BLOCKCHAIN & LEDGER NETWORK
+                     LẬP TRÌNH MẠNG (TCP SOCKETS)  |  JDK 21+  |  NetBeans
             =============================================================
-            * Cryptographic SHA-256 Hashing & Merkle Root Verification
-            * Dynamic Difficulty Retargeting with Mathematical Dampening
-            * High-Throughput Multi-Threaded Mining (Virtual Threads)
-            * Tamper-Evident Ledger Integrity & Attack Simulation
-            * Automated Performance Profiling & Hashrate Meter
+            * Peer-to-Peer TCP/IP Socket Cluster with Length-Prefixed Framing
+            * Asynchronous ServerSocket Concurrency (Java 21 Virtual Threads)
+            * Multi-Hop Gossip Protocol Transaction Propagation
+            * Block Broadcasting & Real-Time Ledger Synchronization
+            * Cryptographic SHA-256 Hashing, Merkle Roots & PoW Engine
+            * Dynamic Difficulty Retargeting & Tamper Attack Audit
             =============================================================""");
     }
 }

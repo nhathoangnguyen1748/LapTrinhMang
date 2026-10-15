@@ -3,6 +3,7 @@ package com.pow.simulator.core;
 import com.pow.simulator.crypto.HashUtil;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -61,11 +62,14 @@ public record Block(
         );
     }
 
+    public static final long DEFAULT_GENESIS_TIMESTAMP = 1700000000000L;
+
     /**
-     * Factory constructor for creating the Genesis block with current time.
+     * Factory constructor for creating the Genesis block with reproducible fixed timestamp.
+     * Guarantees identical genesis block hashes across distributed network nodes.
      */
     public static Block createGenesisBlock(int initialDifficultyBits) {
-        return createGenesisBlock(initialDifficultyBits, System.currentTimeMillis());
+        return createGenesisBlock(initialDifficultyBits, DEFAULT_GENESIS_TIMESTAMP);
     }
 
     /**
@@ -133,6 +137,48 @@ public record Block(
             return hash;
         }
         return hash.substring(0, 8) + "..." + hash.substring(hash.length() - 6);
+    }
+
+    /**
+     * Serializes this block and its transactions into a network-safe string format.
+     */
+    public String toNetworkString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(index).append("\t")
+          .append(timestamp).append("\t")
+          .append(previousHash).append("\t")
+          .append(merkleRoot).append("\t")
+          .append(nonce).append("\t")
+          .append(difficultyBits).append("\t")
+          .append(hash).append("\n");
+        for (Transaction tx : transactions) {
+            sb.append(tx.toNetworkString()).append("\n");
+        }
+        return sb.toString().trim();
+    }
+
+    /**
+     * Deserializes a block and its transactions from a network string format.
+     */
+    public static Block fromNetworkString(String raw) {
+        String[] lines = raw.split("\n");
+        String[] header = lines[0].trim().split("\t", -1);
+        int index = Integer.parseInt(header[0]);
+        long timestamp = Long.parseLong(header[1]);
+        String previousHash = header[2];
+        String merkleRoot = header[3];
+        long nonce = Long.parseLong(header[4]);
+        int difficultyBits = Integer.parseInt(header[5]);
+        String hash = header[6];
+
+        List<Transaction> txs = new ArrayList<>();
+        for (int i = 1; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (!line.isEmpty()) {
+                txs.add(Transaction.fromNetworkString(line));
+            }
+        }
+        return new Block(index, timestamp, previousHash, merkleRoot, txs, nonce, difficultyBits, hash);
     }
 
     @Override
