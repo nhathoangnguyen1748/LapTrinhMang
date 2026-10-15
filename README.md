@@ -8,13 +8,33 @@ A modular, high-throughput, and cryptographically sound Proof-of-Work (PoW) bloc
 
 | MSSV | Họ và Tên | Vai trò | Công việc đã thực hiện | Issues & Pull Requests |
 | :---: | :--- | :---: | :--- | :---: |
-| **2380601549** | Nguyễn Hoàng Nhật | Nhóm trưởng | Thiết kế kiến trúc PoW Engine, Tầng dữ liệu `Block`, `Transaction`, `MerkleTree`, `HashUtil` (SHA-256 ThreadLocal) & Quản lý Repository | Issue #1, PR #4 |
-| **2380601305** | Nguyễn Đỗ Trung Lương | Thành viên | Thuật toán đồng thuận PoW, công cụ đào đa luồng `MultiThreadedMiner` (Java 21 Virtual Threads) & `DifficultyAdjuster` (Epoch Retargeting) | Issue #2, PR #5 |
-| **2380601342** | Lê Quang Minh | Thành viên | Kiểm toán sổ cái `BlockchainValidator`, mô phỏng tấn công giả mạo `AttackSimulator` & Bộ kiểm thử tự động JUnit 5 | Issue #3, PR #6 |
+| **2380601549** | Nguyễn Hoàng Nhật | Nhóm trưởng | Thiết kế kiến trúc Blockchain & Tầng mạng P2P TCP Socket Cluster (`NetworkProtocol`, `NodeServer`, `PeerConnection`, `P2PNode`), `Block`, `Transaction`, `HashUtil`, Quản lý Repo | Issue #1, Issue #7<br>PR #4, PR #8 |
+| **2380601305** | Nguyễn Đỗ Trung Lương | Thành viên | Thuật toán đồng thuận PoW, công cụ đào đa luồng `MultiThreadedMiner` (Java 21 Virtual Threads) & `DifficultyAdjuster` (Epoch Retargeting) | Issue #2<br>PR #5 |
+| **2380601342** | Lê Quang Minh | Thành viên | Kiểm toán sổ cái `BlockchainValidator`, mô phỏng tấn công giả mạo `AttackSimulator` & Toàn bộ bộ kiểm thử tự động JUnit 5 | Issue #3<br>PR #6 |
 
 ---
 
-## 🌟 Architecture & Highlights
+## 🌐 Trọng Tâm Kiến Trúc Mạng (LẬP TRÌNH MẠNG - TCP/IP SOCKETS)
+
+Dự án hiện thực hóa trọn vẹn mô hình **Mạng phân tán ngang hàng (Peer-to-Peer - P2P)** trên nền tảng **Java 21 Sockets & Virtual Threads**:
+
+1. **Giao thức đóng gói Stream Framing (`NetworkProtocol`)**:
+   - Khắc phục triệt để hiện tượng phân mảnh gói tin TCP (TCP Stream Fragmentation / Sticky Packets) bằng kỹ thuật **4-byte Big-Endian Length-Prefixed Framing**.
+   - Mỗi khung tin (frame) mang một `NetworkMessage` định danh bằng UUID chống bão lặp gói tin (broadcast storm protection).
+2. **Xử lý đa luồng Socket với Java 21 Virtual Threads (`NodeServer`, `PeerConnection`)**:
+   - `NodeServer` chạy trên `ServerSocket` bất đồng bộ. Mỗi kết nối client đến được phục vụ bởi một Virtual Thread nhẹ (`Thread.ofVirtual()`), không gây cạn kiệt tài nguyên luồng hệ điều hành.
+   - Kết nối song công (Duplex TCP Socket) với cơ chế tự động phát hiện đóng kết nối và xử lý ngắt.
+3. **Giao thức truyền bá Gossip Protocol đa chặng (`P2PNode`, `Mempool`)**:
+   - Giao dịch được tạo tại một Client/Wallet Node được truyền qua socket TCP tới các Relay Node trung gian và phát tán tới Miner Node (`Node-C -> Node-B -> Node-A`).
+   - Bộ đệm `seenMessageIds` dạng Concurrent Sliding Cache loại bỏ nguy cơ loop gói tin trong mạng hình lưới.
+4. **Đồng thuận phân tán & Đồng bộ chuỗi khối qua mạng (Nakamoto Consensus)**:
+   - Khi một Node đào thành công khối mới, khối được băm và phát tán tức thì (`BLOCK_BROADCAST`) qua mạng TCP tới toàn bộ các Node.
+   - Các Node nhận khối, thẩm định tính hợp lệ mật mã (`BlockchainValidator`) và cập nhật sổ cái cục bộ.
+   - Khi một Node mới tham gia mạng hoặc có chuỗi ngắn hơn, giao thức bắt tay `HANDSHAKE` tự động kích hoạt `SYNC_REQUEST` / `SYNC_RESPONSE` để truyền tải và thay thế bằng chuỗi dài nhất hợp lệ (Longest Chain Rule).
+
+---
+
+## 🌟 Architecture & Highlights (Các Module Bổ Trợ)
 
 1. **Cryptographic Core (`com.pow.simulator.crypto` & `core`)**:
    - Cryptographically secure SHA-256 hashing using `MessageDigest`.
