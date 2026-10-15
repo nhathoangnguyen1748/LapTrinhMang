@@ -4,6 +4,16 @@ A modular, high-throughput, and cryptographically sound Proof-of-Work (PoW) bloc
 
 ---
 
+## 👥 Bảng Ma Trận Phân Công & Đóng Góp Thành Viên
+
+| MSSV | Họ và Tên | Vai trò | Công việc đã thực hiện | Issues & Pull Requests |
+| :---: | :--- | :---: | :--- | :---: |
+| **2380601549** | Nguyễn Hoàng Nhật | Nhóm trưởng | Thiết kế kiến trúc PoW Engine, Tầng dữ liệu `Block`, `Transaction`, `MerkleTree`, `HashUtil` (SHA-256 ThreadLocal) & Quản lý Repository | Issue #1, PR #4 |
+| **2380601305** | Nguyễn Đỗ Trung Lương | Thành viên | Thuật toán đồng thuận PoW, công cụ đào đa luồng `MultiThreadedMiner` (Java 21 Virtual Threads) & `DifficultyAdjuster` (Epoch Retargeting) | Issue #2, PR #5 |
+| **2380601342** | Lê Quang Minh | Thành viên | Kiểm toán sổ cái `BlockchainValidator`, mô phỏng tấn công giả mạo `AttackSimulator` & Bộ kiểm thử tự động JUnit 5 | Issue #3, PR #6 |
+
+---
+
 ## 🌟 Architecture & Highlights
 
 1. **Cryptographic Core (`com.pow.simulator.crypto` & `core`)**:
