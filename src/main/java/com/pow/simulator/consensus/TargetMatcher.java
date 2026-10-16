@@ -89,4 +89,20 @@ public final class TargetMatcher {
             return String.format("%d bits (~%d hex zeros + %d bit mask)", difficultyBits, hexZeros, remBits);
         }
     }
+
+    /**
+     * Trả về chuỗi biểu diễn nhị phân (binary mask) của độ khó yêu cầu.
+     * Ví dụ: difficultyBits = 8 -> "00000000... (8 leading zero bits required)".
+     * Hữu ích cho việc kiểm tra trực quan và bảo vệ đồ án trước hội đồng.
+     *
+     * @param difficultyBits số bit 0 yêu cầu
+     * @return chuỗi mask nhị phân mô tả điều kiện PoW
+     */
+    public static String getBinaryTargetMask(int difficultyBits) {
+        if (difficultyBits <= 0) {
+            return "NO_RESTRICTION (0 bits)";
+        }
+        int clampedBits = Math.clamp(difficultyBits, 1, 256);
+        return "0".repeat(clampedBits) + "... (" + clampedBits + " leading zero bits required)";
+    }
 }

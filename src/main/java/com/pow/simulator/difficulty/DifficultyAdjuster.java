@@ -168,6 +168,22 @@ public class DifficultyAdjuster {
         return epochSize;
     }
 
+    public double getMaxAdjustmentFactor() {
+        return maxAdjustmentFactor;
+    }
+
+    public double getMinAdjustmentFactor() {
+        return minAdjustmentFactor;
+    }
+
+    public int getMinDifficultyBits() {
+        return minDifficultyBits;
+    }
+
+    public int getMaxDifficultyBits() {
+        return maxDifficultyBits;
+    }
+
     /**
      * Immutable report detailing difficulty epoch calculations.
      */

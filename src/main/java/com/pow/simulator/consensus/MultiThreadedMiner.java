@@ -150,5 +150,26 @@ public class MultiThreadedMiner implements MiningService {
         }
     }
 
+    /**
+     * Trả về mô hình thực thi luồng hiện tại (Virtual Threads hoặc Platform Threads).
+     */
+    public ExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    /**
+     * Trả về số lượng luồng worker mặc định được phân bổ cho miner.
+     */
+    public int getDefaultThreadCount() {
+        return defaultThreadCount;
+    }
+
+    /**
+     * Trả về kích thước chunk phân bổ nonce atomic giữa các worker.
+     */
+    public static int getDefaultChunkSize() {
+        return DEFAULT_CHUNK_SIZE;
+    }
+
     private record WinningNonce(long nonce, String hash) {}
 }
