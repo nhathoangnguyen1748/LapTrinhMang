@@ -6,11 +6,11 @@ A modular, high-throughput, and cryptographically sound Proof-of-Work (PoW) bloc
 
 ## 👥 Bảng Ma Trận Phân Công & Đóng Góp Thành Viên
 
-| MSSV | Họ và Tên | Vai trò | Công việc đã thực hiện | Issues & Pull Requests |
-| :---: | :--- | :---: | :--- | :---: |
-| **2380601549** | Nguyễn Hoàng Nhật | Nhóm trưởng | Thiết kế kiến trúc Blockchain & Tầng mạng P2P TCP Socket Cluster (`NetworkProtocol`, `NodeServer`, `PeerConnection`, `P2PNode`), `Block`, `Transaction`, `HashUtil`, Quản lý Repo | Issue #1, Issue #7<br>PR #4, PR #8 |
-| **2380601305** | Nguyễn Đỗ Trung Lương | Thành viên | Thuật toán đồng thuận PoW, công cụ đào đa luồng `MultiThreadedMiner` (Java 21 Virtual Threads) & `DifficultyAdjuster` (Epoch Retargeting) | Issue #2<br>PR #5 |
-| **2380601342** | Lê Quang Minh | Thành viên | Kiểm toán sổ cái `BlockchainValidator`, mô phỏng tấn công giả mạo `AttackSimulator` & Toàn bộ bộ kiểm thử tự động JUnit 5 | Issue #3<br>PR #6 |
+| MSSV | Họ và Tên | Công việc đã thực hiện | Merge Requests |
+| :---: | :--- | :--- | :---: |
+| **2380601549** | Nguyễn Hoàng Nhật (Nhóm trưởng) | Thiết kế kiến trúc Blockchain & Tầng mạng P2P TCP Socket Cluster (`NetworkProtocol`, `NodeServer`, `PeerConnection`, `P2PNode`), `Block`, `Transaction`, `HashUtil`, Quản lý Repo | !4, !8, !10 |
+| **2380601305** | Nguyễn Đỗ Trung Lương | Thuật toán đồng thuận PoW, công cụ đào đa luồng `MultiThreadedMiner` (Java 21 Virtual Threads), `InteractiveMinerCLI` (Console & Telemetry) & `DifficultyAdjuster` (Epoch Retargeting) | !5 |
+| **2380601342** | Lê Quang Minh | Kiểm toán sổ cái `BlockchainValidator`, mô phỏng tấn công giả mạo `AttackSimulator` & Toàn bộ bộ kiểm thử tự động JUnit 5 | !6 |
 
 ---
 
@@ -84,14 +84,20 @@ Run from PowerShell or Command Prompt:
 
 ### 1. Execute All JUnit 5 Tests
 ```powershell
-$env:JAVA_HOME = "C:\Program Files\Apache NetBeans\jdk"
-& "C:\Program Files\Apache NetBeans\java\maven\bin\mvn.cmd" clean test
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-22"
+& "C:\Program Files\NetBeans-22\netbeans\java\maven\bin\mvn.cmd" clean test
 ```
 
 ### 2. Run the Interactive Simulator & Benchmark
 ```powershell
-$env:JAVA_HOME = "C:\Program Files\Apache NetBeans\jdk"
-& "C:\Program Files\Apache NetBeans\java\maven\bin\mvn.cmd" compile exec:java
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-22"
+& "C:\Program Files\NetBeans-22\netbeans\java\maven\bin\mvn.cmd" compile exec:java
+```
+
+### 3. Run Dedicated Interactive Proof-of-Work Miner (CLI Console)
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-22"
+& "C:\Program Files\NetBeans-22\netbeans\java\maven\bin\mvn.cmd" compile exec:java -Dexec.args="--interactive"
 ```
 
 ---
@@ -100,6 +106,9 @@ $env:JAVA_HOME = "C:\Program Files\Apache NetBeans\jdk"
 
 Located in `src/test/java/com/pow/simulator`:
 - `BlockMiningTest`: Verifies mined block hashes satisfy target difficulty bits and Merkle calculations.
+- `InteractiveMinerTest`: Validates interactive console session parsing, programmatic simulation and Virtual Threads telemetry.
 - `DifficultyAdjustmentTest`: Verifies difficulty scaling (up/down), dampening caps ($0.25\times - 4.0\times$), and floor constraints.
 - `TamperDetectionTest`: Confirms detection of payload modifications, forged hashes, broken linkage, and temporal paradoxes.
 - `ConcurrencyTest`: Validates virtual thread cancellation, absence of deadlocks, and clean worker termination.
+- `NetworkProtocolTest`: Validates 4-byte big-endian framing and serialization over TCP stream.
+- `P2PClusterNetworkTest`: Full multi-node socket cluster simulation verifying peer connection, handshake, transaction gossip, block broadcast and Nakamoto sync.
