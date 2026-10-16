@@ -165,9 +165,26 @@ public class Blockchain {
      * Replaces a block at an index with a modified block (used specifically by attack simulators).
      */
     public synchronized void setBlockForSimulation(int index, Block modifiedBlock) {
-        if (index < 0 || index >= chain.size()) {
-            throw new IndexOutOfBoundsException("Block index out of bounds: " + index);
-        }
         chain.set(index, modifiedBlock);
     }
+
+    /**
+     * Calculates the confirmed balance for any address across all blocks in the chain.
+     */
+    public synchronized double getBalance(String address) {
+        if (address == null || address.isBlank()) return 0.0;
+        double balance = 0.0;
+        for (Block b : chain) {
+            for (Transaction tx : b.transactions()) {
+                if (address.equalsIgnoreCase(tx.recipient())) {
+                    balance += tx.amount();
+                }
+                if (address.equalsIgnoreCase(tx.sender())) {
+                    balance -= tx.amount();
+                }
+            }
+        }
+        return Math.max(0.0, balance);
+    }
 }
+

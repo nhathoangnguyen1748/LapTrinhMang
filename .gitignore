@@ -64,4 +64,6 @@ frontend-nextjs/node_modules/
 frontend-nextjs/.next/
 frontend-nextjs/out/
 *.tsbuildinfo
-
+# Blockchain Ledger Runtime Storage
+data/ledger/*.json
+data/ledger/*.tmp

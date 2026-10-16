@@ -4,33 +4,34 @@ import com.pow.simulator.consensus.MiningResult;
 import com.pow.simulator.core.Block;
 import com.pow.simulator.core.Blockchain;
 import com.pow.simulator.core.Transaction;
+import com.pow.simulator.crypto.Wallet;
 import com.pow.simulator.network.P2PNode;
+import com.pow.simulator.storage.LedgerStorage;
 import com.pow.simulator.validation.BlockchainValidator;
 import com.pow.simulator.validation.ValidationResult;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Embedded HTTP/REST API Server bridging Java P2P TCP Sockets with the Visual Web Dashboard.
- * Utilizes standard JDK HttpServer with zero external dependencies.
+ * Embedded HTTP/REST API Server bridging Java P2P TCP Sockets, Real ECDSA Cryptographic Wallets,
+ * and Disk Persistence with the Visual Web Dashboard.
  */
 public class NodeApiServer implements AutoCloseable {
 
     private final int httpPort;
     private final HttpServer httpServer;
     private final List<String> eventLogs = new CopyOnWriteArrayList<>();
+    private final LedgerStorage storage = LedgerStorage.defaultInstance();
 
     private P2PNode nodeA; // Miner (port 8001)
     private P2PNode nodeB; // Relay (port 8002)
@@ -51,7 +52,6 @@ public class NodeApiServer implements AutoCloseable {
     }
 
     public synchronized void initP2PNetwork() {
-        // Shutdown any existing nodes
         closeNodes();
 
         eventLogs.clear();
@@ -61,9 +61,21 @@ public class NodeApiServer implements AutoCloseable {
 
         int initialDiff = 10;
         try {
+            // Restore persistent chain from disk if available
+            Blockchain persistedChain = storage.loadChain();
+
             nodeA = new P2PNode("Node-A (Miner)", 8001, initialDiff);
             nodeB = new P2PNode("Node-B (Relay)", 8002, initialDiff);
             nodeC = new P2PNode("Node-C (Wallet)", 8003, initialDiff);
+
+            if (persistedChain != null && persistedChain.size() > 1) {
+                nodeA.getBlockchain().replaceChain(persistedChain.getChain());
+                nodeB.getBlockchain().replaceChain(persistedChain.getChain());
+                nodeC.getBlockchain().replaceChain(persistedChain.getChain());
+                logEvent("💾 Đã khôi phục sổ cái vĩnh viễn từ ổ cứng (" + persistedChain.size() + " blocks, " + storage.getChainFileSize() + " bytes).");
+            } else {
+                storage.saveChain(nodeA.getBlockchain());
+            }
 
             nodeA.setEventLogger(this::logEvent);
             nodeB.setEventLogger(this::logEvent);
@@ -101,6 +113,14 @@ public class NodeApiServer implements AutoCloseable {
         httpServer.createContext("/api/connect-node-d", this::handleConnectNodeD);
         httpServer.createContext("/api/tamper", this::handleTamper);
         httpServer.createContext("/api/reset", this::handleReset);
+
+        // Real Cryptographic Wallet & Disk Storage endpoints
+        httpServer.createContext("/api/wallet/create", this::handleWalletCreate);
+        httpServer.createContext("/api/wallet/balance", this::handleWalletBalance);
+        httpServer.createContext("/api/wallet/faucet", this::handleWalletFaucet);
+        httpServer.createContext("/api/wallet/send-signed", this::handleWalletSendSigned);
+        httpServer.createContext("/api/storage/status", this::handleStorageStatus);
+
         httpServer.createContext("/", this::handleStatic);
     }
 
@@ -117,6 +137,13 @@ public class NodeApiServer implements AutoCloseable {
         sb.append("\"isTampered\":").append(isTampered).append(",");
         sb.append("\"tamperedBlockIndex\":").append(tamperedBlockIndex).append(",");
         sb.append("\"tamperReason\":\"").append(escapeJson(tamperFailureReason)).append("\",");
+
+        // Storage status
+        sb.append("\"storage\":{")
+          .append("\"fileSize\":").append(storage.getChainFileSize()).append(",")
+          .append("\"path\":\"").append(escapeJson(storage.getChainFile().toString())).append("\",")
+          .append("\"lastModified\":\"").append(escapeJson(storage.getLastModifiedFormatted())).append("\"")
+          .append("},");
 
         // Nodes array
         sb.append("\"nodes\":[");
@@ -180,7 +207,10 @@ public class NodeApiServer implements AutoCloseable {
                   .append("\"sender\":\"").append(escapeJson(t.sender())).append("\",")
                   .append("\"recipient\":\"").append(escapeJson(t.recipient())).append("\",")
                   .append("\"amount\":").append(t.amount()).append(",")
-                  .append("\"timestamp\":").append(t.timestamp())
+                  .append("\"timestamp\":").append(t.timestamp()).append(",")
+                  .append("\"signature\":\"").append(escapeJson(t.signature())).append("\",")
+                  .append("\"publicKey\":\"").append(escapeJson(t.publicKey())).append("\",")
+                  .append("\"isSigned\":").append(!t.signature().isBlank())
                   .append("}");
                 if (j < txs.size() - 1) sb.append(",");
             }
@@ -230,6 +260,13 @@ public class NodeApiServer implements AutoCloseable {
         }
 
         MiningResult result = nodeA.mineAndBroadcast();
+        try {
+            storage.saveChain(nodeA.getBlockchain());
+            logEvent("💾 Đã lưu sổ cái xuống đĩa cứng (" + nodeA.getBlockchain().size() + " blocks, " + storage.getChainFileSize() + " bytes)");
+        } catch (Exception e) {
+            logEvent("Lỗi lưu trữ ổ cứng: " + e.getMessage());
+        }
+
         String json = String.format("{\"success\":%b,\"blockIndex\":%d,\"nonce\":%d,\"hash\":\"%s\",\"durationMs\":%d,\"hashrate\":%.2f}",
                 result.success(),
                 result.minedBlock() != null ? result.minedBlock().index() : -1,
@@ -256,8 +293,8 @@ public class NodeApiServer implements AutoCloseable {
                 Thread.sleep(100);
             }
 
-            nodeD.connectToPeer("127.0.0.1", 8001); // Connect to Node A
-            Thread.sleep(300); // Allow TCP Handshake & Sync
+            nodeD.connectToPeer("127.0.0.1", 8001);
+            Thread.sleep(300);
 
             String json = "{\"success\":true,\"nodeDHeight\":" + nodeD.getBlockchain().size()
                     + ",\"tipHash\":\"" + nodeD.getBlockchain().getLatestBlock().getShortHash() + "\"}";
@@ -275,14 +312,13 @@ public class NodeApiServer implements AutoCloseable {
         }
 
         if (nodeA == null || nodeA.getBlockchain().size() < 2) {
-            sendResponse(exchange, 400, "application/json", "{\"error\":\"Need at least 2 blocks to simulate attack\"}");
+            sendResponse(exchange, 400, "application/json", "{\"error\":\"Cần ít nhất 2 khối để thử giả lập tấn công\"}");
             return;
         }
 
         int targetIndex = 1;
         Block victim = nodeA.getBlockchain().getBlock(targetIndex);
 
-        // Forged transaction replacing original
         Transaction hackedTx = new Transaction(
                 "hacked-tx-" + System.currentTimeMillis(),
                 "VictimVault",
@@ -295,7 +331,7 @@ public class NodeApiServer implements AutoCloseable {
                 victim.index(),
                 victim.timestamp(),
                 victim.previousHash(),
-                victim.merkleRoot(), // keep stale root
+                victim.merkleRoot(),
                 List.of(hackedTx),
                 victim.nonce(),
                 victim.difficultyBits(),
@@ -323,6 +359,110 @@ public class NodeApiServer implements AutoCloseable {
         if (handleCors(exchange)) return;
         initP2PNetwork();
         sendResponse(exchange, 200, "application/json", "{\"success\":true,\"message\":\"Network cluster reset successfully\"}");
+    }
+
+    // ==================== REAL CRYPTOGRAPHIC WALLET ENDPOINTS ====================
+
+    private void handleWalletCreate(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+        Wallet wallet = Wallet.createNew();
+        double balance = (nodeA != null) ? nodeA.getBlockchain().getBalance(wallet.getAddress()) : 0.0;
+        String json = "{\"success\":true,\"address\":\"" + wallet.getAddress()
+                + "\",\"privateKey\":\"" + wallet.getPrivateKeyHex()
+                + "\",\"publicKey\":\"" + wallet.getPublicKeyHex()
+                + "\",\"balance\":" + balance + "}";
+        logEvent("🔑 [VÍ ECDSA MỚI] Đã sinh cặp khóa mật mã thật: " + wallet.getAddress());
+        sendResponse(exchange, 200, "application/json", json);
+    }
+
+    private void handleWalletBalance(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+        String query = exchange.getRequestURI().getQuery();
+        String address = "";
+        if (query != null && query.contains("address=")) {
+            address = query.substring(query.indexOf("address=") + 8);
+            if (address.contains("&")) address = address.substring(0, address.indexOf("&"));
+        }
+        double balance = (nodeA != null) ? nodeA.getBlockchain().getBalance(address) : 0.0;
+        String json = "{\"address\":\"" + escapeJson(address) + "\",\"balance\":" + balance + "}";
+        sendResponse(exchange, 200, "application/json", json);
+    }
+
+    private void handleWalletFaucet(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        String recipient = extractJsonField(body, "recipient", "");
+        if (recipient.isBlank()) {
+            recipient = extractJsonField(body, "address", "");
+        }
+        if (recipient.isBlank()) {
+            sendResponse(exchange, 400, "application/json", "{\"error\":\"Recipient address required\"}");
+            return;
+        }
+        double amount = 25.0;
+        Transaction tx = new Transaction(
+                "", "COINBASE", recipient, amount, System.currentTimeMillis(), "", ""
+        );
+        if (nodeC != null) {
+            nodeC.broadcastTransaction(tx);
+        }
+        logEvent("🚰 [FAUCET VÒI NƯỚC] Đã cấp phát " + amount + " COIN cho ví: " + recipient);
+        sendResponse(exchange, 200, "application/json", "{\"success\":true,\"amount\":" + amount + ",\"recipient\":\"" + escapeJson(recipient) + "\"}");
+    }
+
+    private void handleWalletSendSigned(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        String privKeyHex = extractJsonField(body, "privateKey", "");
+        String pubKeyHex = extractJsonField(body, "publicKey", "");
+        String recipient = extractJsonField(body, "recipient", "");
+        double amount = 0.0;
+        try {
+            amount = Double.parseDouble(extractJsonField(body, "amount", "0"));
+        } catch (Exception ignored) {}
+
+        if (privKeyHex.isBlank() || recipient.isBlank() || amount <= 0) {
+            sendResponse(exchange, 400, "application/json", "{\"error\":\"Vui lòng nhập đầy đủ Private Key, Địa chỉ nhận và Số tiền hợp lệ!\"}");
+            return;
+        }
+
+        try {
+            Wallet wallet = (pubKeyHex != null && !pubKeyHex.isBlank())
+                    ? Wallet.fromKeyStrings(privKeyHex, pubKeyHex)
+                    : Wallet.fromPrivateKeyHex(privKeyHex);
+
+            double balance = (nodeA != null) ? nodeA.getBlockchain().getBalance(wallet.getAddress()) : 0.0;
+            if (balance < amount) {
+                String errMsg = "Số dư không đủ! Địa chỉ ví " + wallet.getAddress() + " hiện chỉ có " + balance + " COIN (Cần: " + amount + " COIN). Hãy dùng nút Faucet để nạp tiền!";
+                sendResponse(exchange, 400, "application/json", "{\"error\":\"" + escapeJson(errMsg) + "\"}");
+                return;
+            }
+
+            Transaction signedTx = Transaction.createSigned(wallet, recipient, amount);
+            if (nodeC != null) {
+                nodeC.broadcastTransaction(signedTx);
+            }
+            logEvent("✍️ [KÝ SỐ THẬT ECDSA] Giao dịch " + signedTx.txId() + " được ký bởi ví: " + wallet.getAddress() + " ➔ " + recipient);
+
+            String json = "{\"success\":true,\"txId\":\"" + signedTx.txId()
+                    + "\",\"sender\":\"" + escapeJson(wallet.getAddress())
+                    + "\",\"recipient\":\"" + escapeJson(recipient)
+                    + "\",\"amount\":" + amount
+                    + ",\"signature\":\"" + escapeJson(signedTx.signature()) + "\"}";
+            sendResponse(exchange, 200, "application/json", json);
+        } catch (Exception e) {
+            sendResponse(exchange, 500, "application/json", "{\"error\":\"Lỗi mật mã ví: " + escapeJson(e.getMessage()) + "\"}");
+        }
+    }
+
+    private void handleStorageStatus(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+        long size = storage.getChainFileSize();
+        String path = storage.getChainFile().toAbsolutePath().toString();
+        String lastMod = storage.getLastModifiedFormatted();
+        int blocks = (nodeA != null) ? nodeA.getBlockchain().size() : 0;
+        String json = "{\"path\":\"" + escapeJson(path) + "\",\"sizeBytes\":" + size + ",\"lastModified\":\"" + escapeJson(lastMod) + "\",\"blockCount\":" + blocks + "}";
+        sendResponse(exchange, 200, "application/json", json);
     }
 
     private void handleStatic(HttpExchange exchange) throws IOException {

@@ -1,9 +1,9 @@
 package com.pow.simulator.web;
 
 /**
- * Modern Cyber Visual Dashboard with Ultra Slow-Motion Step-by-Step Simulation.
- * Provides deep-dive pedagogical visualization of TCP sockets, gossip relay, Merkle trees, and PoW nonce search.
- * Split into modular sections to stay well within the JVM 65,535-byte constant pool string limit.
+ * Modern Cyber Visual Dashboard with Real ECDSA Cryptographic Wallets,
+ * Disk Persistence Manager, and Ultra Slow-Motion Step-by-Step Simulation.
+ * Modular methods prevent JVM 65K constant pool string limits.
  */
 public final class DashboardHtmlTemplate {
 
@@ -11,9 +11,10 @@ public final class DashboardHtmlTemplate {
     }
 
     public static String getHtml() {
-        StringBuilder sb = new StringBuilder(50000);
+        StringBuilder sb = new StringBuilder(60000);
         sb.append(getHeadHtml());
         sb.append(getHeaderAndActionsHtml());
+        sb.append(getRealWalletAndStorageHtml());
         sb.append(getSlowMoSectionHtml());
         sb.append(getTopologyAndCardsHtml());
         sb.append(getLedgerAndTerminalHtml());
@@ -148,11 +149,151 @@ public final class DashboardHtmlTemplate {
 """;
     }
 
+    private static String getRealWalletAndStorageHtml() {
+        return """
+        <!-- ==================== SECTION: REAL CRYPTOGRAPHIC ECDSA WALLETS & PERSISTENCE ==================== -->
+        <section class="bg-gradient-to-br from-slate-900 via-indigo-950/30 to-slate-950 border-2 border-indigo-500/70 rounded-2xl p-6 shadow-2xl relative">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-950 border border-indigo-600 flex items-center justify-center text-2xl shadow-lg shadow-indigo-950">
+                        🔑
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base sm:text-lg font-bold text-white tracking-wide">
+                                Trạm Quản Lý Ví Mật Mã Thật (ECDSA Wallets & Disk Persistence)
+                            </h2>
+                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-indigo-950 text-indigo-300 border border-indigo-700">
+                                Chuẩn Mật Mã Bitcoin
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400">
+                            Sinh cặp khóa Private/Public Key thật, ký số SHA256withECDSA chống mạo danh, tra cứu số dư sổ cái và lưu trữ bền vững xuống đĩa cứng.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="createNewWallet()" class="px-3.5 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5">
+                        <span>✨</span> Tạo Ví ECDSA Mới
+                    </button>
+                    <button onclick="refreshStorageStatus()" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition flex items-center gap-1">
+                        <span>💾</span> Kiểm Tra Ổ Cứng
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4-Card Operational Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
+                
+                <!-- Card 1: Active Wallet Key Inspector (6 cols) -->
+                <div class="lg:col-span-6 bg-slate-950 border border-indigo-800/60 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                            <span class="text-xs font-bold text-indigo-300 uppercase flex items-center gap-1.5">
+                                <span>🔐</span> Ví Mật Mã Đang Hoạt Động (Active Wallet)
+                            </span>
+                            <span id="walletBalanceBadge" class="text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-700">
+                                0.00 COIN
+                            </span>
+                        </div>
+
+                        <div class="mt-3 space-y-2 text-xs code-font">
+                            <div>
+                                <div class="flex items-center justify-between text-slate-400 text-[10px] uppercase">
+                                    <span>Địa Chỉ Ví Thật (Public Address):</span>
+                                    <button onclick="copyToClipboard(document.getElementById('walletAddressInput').value)" class="text-cyan-400 hover:text-cyan-300">Sao chép</button>
+                                </div>
+                                <input type="text" id="walletAddressInput" readonly value="Bấm 'Tạo Ví ECDSA Mới' để khởi tạo..." class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-cyan-300 font-bold text-xs mt-1 select-all focus:outline-none">
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between text-rose-400 text-[10px] uppercase font-bold">
+                                    <span>⚠️ Khóa Riêng Tư (Private Key - Tuyệt đối giữ bí mật):</span>
+                                    <button onclick="copyToClipboard(document.getElementById('walletPrivateKeyInput').value)" class="text-rose-400 hover:text-rose-300">Sao chép</button>
+                                </div>
+                                <input type="password" id="walletPrivateKeyInput" readonly value="" placeholder="Private Key sẽ xuất hiện khi tạo ví..." class="w-full bg-slate-900 border border-rose-900/60 rounded px-2.5 py-1.5 text-rose-300 text-xs mt-1 select-all focus:outline-none">
+                                <label class="text-[10px] text-slate-500 flex items-center gap-1 mt-1 cursor-pointer">
+                                    <input type="checkbox" onchange="document.getElementById('walletPrivateKeyInput').type = this.checked ? 'text' : 'password'" class="rounded bg-slate-900 border-slate-800">
+                                    Hiện Private Key
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-900">
+                        <button onclick="faucetAirdrop()" class="px-3 py-1.5 text-xs font-bold bg-amber-950 text-amber-300 hover:bg-amber-900 border border-amber-700 rounded-lg transition flex items-center gap-1">
+                            <span>🚰</span> Vòi Tiền Thử Nghiệm (Faucet +25 COIN)
+                        </button>
+                        <span class="text-[11px] text-slate-500 italic">* Tiền giả lập trên mạng của bạn</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Digital Signature & Transfer Form (6 cols) -->
+                <div class="lg:col-span-6 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                            <span class="text-xs font-bold text-emerald-400 uppercase flex items-center gap-1.5">
+                                <span>✍️</span> Ký Số Điện Tử & Chuyển Tiền Thật
+                            </span>
+                            <span class="text-[10px] bg-slate-900 px-2 py-0.5 rounded text-slate-400 code-font">SHA256withECDSA</span>
+                        </div>
+
+                        <div class="mt-3 space-y-2 text-xs">
+                            <div>
+                                <label class="text-slate-400 text-[10px] uppercase block">Ví Nhận Tiền (Recipient Address):</label>
+                                <input type="text" id="txRecipientInput" placeholder="pow1_... hoặc Merchant_Cafe" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white code-font text-xs mt-1 focus:border-cyan-500 focus:outline-none">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-slate-400 text-[10px] uppercase block">Số Lượng COIN:</label>
+                                    <input type="number" id="txAmountInput" value="10.0" step="0.5" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-amber-400 font-bold code-font text-xs mt-1 focus:border-amber-500 focus:outline-none">
+                                </div>
+                                <div class="flex flex-col justify-end">
+                                    <button onclick="sendSignedTransaction()" class="w-full py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded shadow-lg shadow-emerald-950 transition flex items-center justify-center gap-1">
+                                        <span>🖋️</span> Ký & Gửi Giao Dịch
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="txSignStatusBox" class="hidden p-2 rounded bg-slate-900 border border-slate-800 text-[11px] code-font text-slate-300 break-all">
+                                <!-- Status or Signature result -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-900 flex items-center justify-between">
+                        <span>Lưu ý:</span>
+                        <span class="text-emerald-400 font-medium">Bắt buộc phải có Private Key hợp lệ mới ký được!</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Disk Persistence Bar -->
+            <div class="mt-4 p-3 bg-slate-950/70 border border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs code-font text-slate-400">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">💾</span>
+                    <div>
+                        <span class="text-white font-bold">Lưu Trữ Ổ Cứng Vĩnh Viễn:</span>
+                        <span id="storagePathDisplay" class="text-slate-400 ml-1">data/ledger/chain_data.json</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 text-[11px]">
+                    <div>Dung lượng: <span id="storageSizeDisplay" class="text-cyan-400 font-bold">0 bytes</span></div>
+                    <div>Số khối trên đĩa: <span id="storageBlocksDisplay" class="text-amber-400 font-bold">1 blocks</span></div>
+                    <div>Cập nhật lúc: <span id="storageTimeDisplay" class="text-slate-300">Chưa lưu</span></div>
+                </div>
+            </div>
+        </section>
+""";
+    }
+
     private static String getSlowMoSectionHtml() {
         return """
         <!-- ==================== SECTION: ULTRA SLOW-MOTION STEP-BY-STEP SIMULATION ==================== -->
         <section class="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-cyan-500/60 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-            <!-- Header bar with Mode badge & Controls -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 rounded-xl bg-cyan-950 border border-cyan-700 flex items-center justify-center text-2xl shadow-lg shadow-cyan-950">
@@ -173,7 +314,6 @@ public final class DashboardHtmlTemplate {
                     </div>
                 </div>
 
-                <!-- Slow-Mo Controls -->
                 <div class="flex flex-wrap items-center gap-2">
                     <button id="btnSlowMoPlay" onclick="toggleSlowMoPlay()" class="px-3.5 py-1.5 text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg shadow-lg shadow-cyan-500/25 transition flex items-center gap-1.5">
                         <span id="slowMoPlayIcon">▶️</span> <span id="slowMoPlayText">Bắt Đầu Chạy Chậm</span>
@@ -200,12 +340,10 @@ public final class DashboardHtmlTemplate {
                 </div>
             </div>
 
-            <!-- 9-Step Progress Stepper Navigation Pills -->
             <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-1.5 my-4" id="slowMoStepperContainer">
                 <!-- Dynamically rendered 9 pills -->
             </div>
 
-            <!-- Spotlight Visual Stage Box (Màn hình diễn họa chi tiết) -->
             <div id="slowMoStageBox" class="bg-slate-950 border border-cyan-900/50 rounded-xl p-5 shadow-inner">
                 <!-- Content injected by renderSlowMoStep() -->
             </div>
@@ -239,7 +377,7 @@ public final class DashboardHtmlTemplate {
                         <span class="text-2xl">💸</span>
                         <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 border border-purple-700/50">Gossip TCP</span>
                     </div>
-                    <div class="text-sm font-bold text-white group-hover:text-purple-300 transition">1. Gửi Giao Dịch</div>
+                    <div class="text-sm font-bold text-white group-hover:text-purple-300 transition">1. Gửi Giao Dịch Nhanh</div>
                     <p class="text-xs text-slate-400 mt-1">Node C (Ví) phát tán Tx qua Node B rồi tới Node A vào Mempool.</p>
                 </button>
 
@@ -258,7 +396,7 @@ public final class DashboardHtmlTemplate {
                 <button onclick="connectNodeD()" class="group relative overflow-hidden bg-gradient-to-br from-emerald-950/60 to-slate-900 border border-emerald-800/50 hover:border-emerald-500/80 rounded-xl p-4 text-left transition-all duration-200 hover:shadow-lg hover:shadow-emerald-950/50">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-2xl">🌐</span>
-                        <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-700/50">Sync Nakamoto</span>
+                        <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-700/50">Sync Nakamoto</span>
                     </div>
                     <div class="text-sm font-bold text-white group-hover:text-emerald-300 transition">3. Kết Nối Node D</div>
                     <p class="text-xs text-slate-400 mt-1">Bật Node D (Port 8004), gửi TCP Handshake & Sync toàn bộ Ledger.</p>
@@ -423,16 +561,15 @@ public final class DashboardHtmlTemplate {
         return """
     <!-- JavaScript Logic & Network Simulation Scripts -->
     <script>
-        // State variables
         let lastLogCount = 0;
         let isMining = false;
         let canvasParticles = [];
 
-        // Fetch status and chain on load and every 1.2s
         window.addEventListener('DOMContentLoaded', () => {
             initCanvas();
             initSlowMoStepper();
             fetchStatusAndChain();
+            refreshStorageStatus();
             setInterval(fetchStatusAndChain, 1200);
             animateCanvas();
         });
@@ -452,6 +589,7 @@ public final class DashboardHtmlTemplate {
                 updateStatusUI(status);
                 updateChainUI(chain, status);
                 updateLogsUI(status.logs);
+                if (status.storage) updateStorageUI(status.storage, chain.length);
 
                 document.getElementById('connectionStatus').className = 
                     "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-700/50 text-emerald-400 font-medium";
@@ -465,6 +603,128 @@ public final class DashboardHtmlTemplate {
                 document.getElementById('connectionStatus').innerHTML = 
                     '<span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Backend Disconnected</span>';
             }
+        }
+
+        // ==================== REAL WALLET ACTIONS ====================
+
+        let activeWalletData = null;
+
+        async function createNewWallet() {
+            try {
+                const res = await fetch('/api/wallet/create', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    activeWalletData = data;
+                    document.getElementById('walletAddressInput').value = data.address;
+                    document.getElementById('walletPrivateKeyInput').value = data.privateKey;
+                    document.getElementById('walletBalanceBadge').textContent = data.balance.toFixed(2) + ' COIN';
+                    alert('🎉 Đã tạo thành công Ví ECDSA 256-bit chuẩn Bitcoin!\\n\\nĐịa chỉ: ' + data.address + '\\n\\nPrivate Key đã được tạo an toàn trong máy.');
+                }
+            } catch (err) {
+                alert('Lỗi tạo ví: ' + err.message);
+            }
+        }
+
+        async function faucetAirdrop() {
+            const address = document.getElementById('walletAddressInput').value.trim();
+            if (!address || address.includes('Bấm')) {
+                alert('Vui lòng bấm nút "Tạo Ví ECDSA Mới" trước để có địa chỉ nhận tiền!');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/wallet/faucet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipient: address })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('🚰 Đã gửi 25.00 COIN từ Faucet vào Mempool cho ví của bạn!\\n\\nHãy bấm nút "2. Khai Thác Block" bên dưới để thợ đào đóng khối và cập nhật số dư!');
+                    fetchStatusAndChain();
+                } else {
+                    alert(data.error || 'Lỗi nạp tiền faucet');
+                }
+            } catch (err) {
+                alert('Lỗi kết nối Faucet: ' + err.message);
+            }
+        }
+
+        async function sendSignedTransaction() {
+            const privateKey = document.getElementById('walletPrivateKeyInput').value.trim();
+            const recipient = document.getElementById('txRecipientInput').value.trim();
+            const amount = parseFloat(document.getElementById('txAmountInput').value);
+
+            if (!privateKey) {
+                alert('Vui lòng tạo hoặc nhập Private Key hợp lệ để ký số!');
+                return;
+            }
+            if (!recipient) {
+                alert('Vui lòng nhập địa chỉ ví nhận tiền!');
+                return;
+            }
+            if (!amount || amount <= 0) {
+                alert('Vui lòng nhập số tiền lớn hơn 0!');
+                return;
+            }
+
+            const statusBox = document.getElementById('txSignStatusBox');
+            statusBox.classList.remove('hidden');
+            statusBox.innerHTML = '<span class="text-cyan-400">⏳ Đang ký số bằng SHA256withECDSA và phát tán vào mạng TCP Socket...</span>';
+
+            try {
+                const res = await fetch('/api/wallet/send-signed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        privateKey,
+                        publicKey: activeWalletData ? activeWalletData.publicKey : '',
+                        recipient,
+                        amount
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    statusBox.innerHTML = `
+                        <div class="text-emerald-400 font-bold mb-1">✔️ Giao dịch đã được ký số và gửi thành công!</div>
+                        <div>TxID: <span class="text-amber-300 font-bold">${data.txId}</span></div>
+                        <div class="mt-1 text-[10px] text-slate-400">Chữ ký ECDSA DER: <span class="text-purple-300">${data.signature.substring(0, 40)}...</span></div>
+                    `;
+                    triggerPacketAnimation('C', 'B');
+                    setTimeout(() => triggerPacketAnimation('B', 'A'), 200);
+                    fetchStatusAndChain();
+                } else {
+                    statusBox.innerHTML = '<span class="text-rose-400 font-bold">❌ ' + (data.error || 'Giao dịch bị từ chối!') + '</span>';
+                }
+            } catch (err) {
+                statusBox.innerHTML = '<span class="text-rose-400 font-bold">❌ Lỗi: ' + err.message + '</span>';
+            }
+        }
+
+        async function refreshStorageStatus() {
+            try {
+                const res = await fetch('/api/storage/status');
+                const data = await res.json();
+                updateStorageUI(data, data.blockCount);
+            } catch (err) {}
+        }
+
+        function updateStorageUI(storage, blockCount) {
+            if (!storage) return;
+            document.getElementById('storagePathDisplay').textContent = storage.path || 'data/ledger/chain_data.json';
+            document.getElementById('storageSizeDisplay').textContent = (storage.sizeBytes || storage.fileSize || 0).toLocaleString() + ' bytes';
+            document.getElementById('storageBlocksDisplay').textContent = (blockCount || storage.blockCount || 1) + ' blocks';
+            document.getElementById('storageTimeDisplay').textContent = storage.lastModified || 'Đang đồng bộ';
+        }
+
+        function copyToClipboard(text) {
+            if (!text || text.includes('Bấm')) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Đã sao chép vào bộ nhớ tạm: ' + text.substring(0, 24) + '...');
+            }).catch(() => {
+                prompt('Sao chép chuỗi này:', text);
+            });
         }
 
         function updateStatusUI(status) {
@@ -589,7 +849,10 @@ public final class DashboardHtmlTemplate {
                                 <div class="max-h-24 overflow-y-auto space-y-1 pr-1">
                                     ${block.transactions.map(tx => `
                                         <div class="bg-slate-900 px-2 py-1 rounded text-[10px] border border-slate-800 flex items-center justify-between">
-                                            <span class="text-slate-300 truncate max-w-[120px]">${tx.sender} → ${tx.recipient}</span>
+                                            <div class="truncate max-w-[150px]">
+                                                <span class="text-slate-300 truncate">${tx.sender.substring(0, 8)}... ➔ ${tx.recipient.substring(0, 8)}...</span>
+                                                ${tx.isSigned ? '<span class="text-[8px] bg-indigo-950 text-indigo-300 px-1 rounded ml-1 border border-indigo-800">ECDSA</span>' : ''}
+                                            </div>
                                             <span class="text-amber-400 font-bold ml-1">${tx.amount} COIN</span>
                                         </div>
                                     `).join('')}
@@ -625,6 +888,8 @@ public final class DashboardHtmlTemplate {
                         color = 'text-cyan-300';
                     } else if (line.includes('SYNC')) {
                         color = 'text-emerald-300';
+                    } else if (line.includes('ECDSA') || line.includes('🔑') || line.includes('✍️')) {
+                        color = 'text-indigo-300 font-bold';
                     }
                     return `<div class="${color}">${escapeHtml(line)}</div>`;
                 }).join('');
@@ -679,6 +944,7 @@ public final class DashboardHtmlTemplate {
                 }, 200);
 
                 fetchStatusAndChain();
+                refreshStorageStatus();
             } catch (err) {
                 alert('Lỗi khai thác: ' + err.message);
             } finally {
@@ -716,6 +982,7 @@ public final class DashboardHtmlTemplate {
             try {
                 await fetch('/api/reset', { method: 'POST' });
                 fetchStatusAndChain();
+                refreshStorageStatus();
             } catch (err) {
                 alert('Lỗi reset: ' + err.message);
             }
@@ -777,7 +1044,6 @@ public final class DashboardHtmlTemplate {
 
             ctx.clearRect(0, 0, w, h);
 
-            // Draw TCP links
             const links = [
                 ['B', 'A'],
                 ['C', 'B'],
@@ -798,7 +1064,6 @@ public final class DashboardHtmlTemplate {
                 ctx.setLineDash([]);
             });
 
-            // Update & draw flying TCP packets
             for (let i = canvasParticles.length - 1; i >= 0; i--) {
                 const p = canvasParticles[i];
                 p.progress += p.speed;
@@ -821,7 +1086,6 @@ public final class DashboardHtmlTemplate {
                 ctx.shadowBlur = 0;
             }
 
-            // Draw Nodes
             Object.keys(nodePositions).forEach(key => {
                 const node = nodePositions[key];
                 
@@ -854,9 +1118,7 @@ public final class DashboardHtmlTemplate {
             requestAnimationFrame(animateCanvas);
         }
 
-        // =========================================================================
-        // ==================== ULTRA SLOW-MOTION SIMULATION LOGIC =================
-        // =========================================================================
+        // ==================== SLOW-MOTION STEPPER ====================
 
         let slowMoState = {
             currentStep: 1,
@@ -936,7 +1198,7 @@ public final class DashboardHtmlTemplate {
                             </div>
                         </div>
                         <div class="bg-cyan-950/30 border border-cyan-800/40 rounded-lg p-3 text-xs text-slate-300">
-                            📡 <strong class="text-cyan-300">Kiến thức Lập Trình Mạng quan trọng:</strong> Giao thức TCP là luồng byte liên tục (Stream-oriented), không có ranh giới gói tin. Nếu không có 4 byte độ dài này, hai gói tin gửi sát nhau sẽ bị dính chùm vào nhau (Sticky Packets). Nhờ kỹ thuật này, hàm <code class="text-cyan-200">readNBytes(length)</code> luôn đọc trọn vẹn từng thông điệp!
+                            📡 <strong class="text-cyan-300">Kiến thức Lập Trình Mạng:</strong> Giao thức TCP là luồng byte liên tục (Stream-oriented), không có ranh giới gói tin. Nếu không có 4 byte độ dài này, hai gói tin gửi sát nhau sẽ bị dính chùm vào nhau (Sticky Packets).
                         </div>
                     </div>
                 `
@@ -974,9 +1236,6 @@ public final class DashboardHtmlTemplate {
                                 Java Code: <span class="text-purple-300">socket.getOutputStream().write(frameBytes);</span>
                             </div>
                         </div>
-                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 text-xs text-slate-300">
-                            ⚙️ <strong class="text-slate-200">Cơ chế hoạt động:</strong> Node C mở kết nối TCP duplex tới Node B. Virtual Thread tại Node B liên tục đọc InputStream để tiếp nhận khung tin ngay khi các byte đầu tiên cập bến.
-                        </div>
                     </div>
                 `
             },
@@ -993,18 +1252,9 @@ public final class DashboardHtmlTemplate {
                             <div class="bg-slate-900 border border-cyan-800/60 rounded-xl p-4">
                                 <div class="text-xs text-cyan-400 font-bold uppercase mb-2">Thao Tác Tại Node B (Relay):</div>
                                 <ul class="space-y-2 text-xs text-slate-300">
-                                    <li class="flex items-center gap-2">
-                                        <span class="text-emerald-400">✔️</span>
-                                        <span>Kiểm tra <code class="text-cyan-300">seenMessageIds</code>: Gói tin mới, chưa thấy bao giờ.</span>
-                                    </li>
-                                    <li class="flex items-center gap-2">
-                                        <span class="text-emerald-400">✔️</span>
-                                        <span>Thêm vào hàng đợi chờ: <code class="text-amber-300">Mempool (+1 Tx)</code>.</span>
-                                    </li>
-                                    <li class="flex items-center gap-2">
-                                        <span class="text-cyan-400">➡️</span>
-                                        <span>Chuyển tiếp (Forward) qua TCP Socket tới <strong class="text-amber-300">Node A (Port 8001)</strong>.</span>
-                                    </li>
+                                    <li class="flex items-center gap-2"><span class="text-emerald-400">✔️</span> Kiểm tra <code class="text-cyan-300">seenMessageIds</code>: Gói tin mới, chưa thấy bao giờ.</li>
+                                    <li class="flex items-center gap-2"><span class="text-emerald-400">✔️</span> Thêm vào hàng đợi chờ: <code class="text-amber-300">Mempool (+1 Tx)</code>.</li>
+                                    <li class="flex items-center gap-2"><span class="text-cyan-400">➡️</span> Chuyển tiếp (Forward) qua TCP Socket tới <strong class="text-amber-300">Node A (Port 8001)</strong>.</li>
                                 </ul>
                             </div>
 
@@ -1015,9 +1265,6 @@ public final class DashboardHtmlTemplate {
                                     <div class="text-amber-300 font-bold">[TxID: 077fe90f] Alice ➔ Bob : 15.50 COIN</div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="bg-cyan-950/30 border border-cyan-800/40 rounded-lg p-3 text-xs text-slate-300">
-                            🛡️ <strong class="text-cyan-300">Chống bão Broadcast Storm:</strong> Trong mạng ngang hàng (P2P), nếu không có cơ chế khử lặp (Deduplication) bằng UUID, các nút sẽ gửi qua gửi lại thông điệp vô tận làm sập đường truyền mạng.
                         </div>
                     </div>
                 `
@@ -1033,13 +1280,11 @@ public final class DashboardHtmlTemplate {
                     <div class="space-y-4">
                         <div class="bg-slate-900 border border-indigo-800/60 rounded-xl p-4 flex flex-col items-center">
                             <div class="text-xs text-indigo-400 font-bold uppercase mb-3">Sơ Đồ Cây Merkle Tree Nhị Phân (Binary Tree):</div>
-                            
                             <div class="bg-gradient-to-r from-indigo-900 to-purple-900 border-2 border-indigo-400 px-4 py-2 rounded-xl text-center shadow-lg shadow-indigo-950 mb-2">
                                 <div class="text-[10px] uppercase font-bold text-indigo-300">Đỉnh Cây: Merkle Root (32 Bytes)</div>
                                 <div class="text-xs font-bold text-white code-font">077fe90ff7ec4eb12bf70380...</div>
                             </div>
                             <div class="text-indigo-400 text-sm my-1">▲ Băm Gộp: SHA256(Hash_A + Hash_B)</div>
-
                             <div class="flex items-center gap-8 my-1">
                                 <div class="bg-slate-950 border border-indigo-700/60 px-3 py-1.5 rounded-lg text-center">
                                     <div class="text-[9px] text-slate-500 uppercase">Nhánh Con Hash_A</div>
@@ -1050,19 +1295,6 @@ public final class DashboardHtmlTemplate {
                                     <div class="text-[11px] code-font text-cyan-300">3f88d22e...</div>
                                 </div>
                             </div>
-                            <div class="text-slate-600 text-xs my-1">▲ Các Lá Giao Dịch</div>
-
-                            <div class="grid grid-cols-2 gap-4 text-center w-full max-w-md">
-                                <div class="bg-slate-950 border border-slate-800 p-2 rounded text-[11px] code-font text-slate-300">
-                                    Tx1: Alice ➔ Bob (15.5)
-                                </div>
-                                <div class="bg-slate-950 border border-slate-800 p-2 rounded text-[11px] code-font text-slate-300">
-                                    Tx2: Coinbase (Reward 50)
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-indigo-950/30 border border-indigo-800/40 rounded-lg p-3 text-xs text-slate-300">
-                            🌲 <strong class="text-indigo-300">Sức mạnh của Cây Merkle:</strong> Dù khối có 10.000 giao dịch, đỉnh Merkle Root vẫn chỉ dài đúng 32 bytes. Nếu bất kỳ ai sửa 1 giao dịch ở tầng lá, gốc cây Merkle Root sẽ lập tức sai lệch!
                         </div>
                     </div>
                 `
@@ -1080,34 +1312,25 @@ public final class DashboardHtmlTemplate {
                             <div class="flex items-center justify-between mb-3">
                                 <div>
                                     <span class="text-xs text-amber-400 font-bold uppercase">Mục Tiêu Độ Khó (Target Difficulty):</span>
-                                    <div class="text-xs text-slate-300 mt-0.5">Yêu cầu mã băm phải bắt đầu bằng <strong class="text-amber-400 code-font">10 bit 0</strong> (khoảng 3 chữ số '0' ở đầu)</div>
+                                    <div class="text-xs text-slate-300 mt-0.5">Yêu cầu mã băm bắt đầu bằng <strong class="text-amber-400 code-font">10 bit 0</strong> (dạng 000...)</div>
                                 </div>
                                 <span class="text-xs bg-amber-950 text-amber-300 px-2.5 py-1 rounded border border-amber-800 font-bold code-font">Target: 000...</span>
                             </div>
 
                             <div class="bg-slate-950 rounded-xl p-3 border border-slate-800 space-y-2 font-mono text-xs">
-                                <div class="text-slate-500">// Quá trình máy tính thử nghiệm giải đố từng con số Nonce:</div>
                                 <div class="text-rose-400 flex items-center justify-between">
-                                    <span>Thử Nonce = 0 &nbsp;➔ SHA256(BlockHeader + 0) = d83a21b4...</span>
+                                    <span>Thử Nonce = 0 ➔ SHA256(BlockHeader + 0) = d83a21b4...</span>
                                     <span class="text-[10px] bg-rose-950 px-1.5 py-0.5 rounded text-rose-300 border border-rose-800">❌ SAI</span>
                                 </div>
                                 <div class="text-rose-400 flex items-center justify-between">
-                                    <span>Thử Nonce = 1 &nbsp;➔ SHA256(BlockHeader + 1) = 4f9812ee...</span>
+                                    <span>Thử Nonce = 1 ➔ SHA256(BlockHeader + 1) = 4f9812ee...</span>
                                     <span class="text-[10px] bg-rose-950 px-1.5 py-0.5 rounded text-rose-300 border border-rose-800">❌ SAI</span>
                                 </div>
-                                <div class="text-rose-400 flex items-center justify-between">
-                                    <span>Thử Nonce = 2 &nbsp;➔ SHA256(BlockHeader + 2) = 7c1a90d3...</span>
-                                    <span class="text-[10px] bg-rose-950 px-1.5 py-0.5 rounded text-rose-300 border border-rose-800">❌ SAI</span>
-                                </div>
-                                <div class="text-slate-600 text-center py-1">... [Đã thử hàng ngàn số Nonce bằng Java 21 Virtual Threads] ...</div>
                                 <div class="text-emerald-400 font-bold bg-emerald-950/60 p-2 rounded border border-emerald-700 flex items-center justify-between">
                                     <span>🎉 Thử Nonce = 4404 ➔ SHA256 = 002af149...8587f2</span>
                                     <span class="text-[10px] bg-emerald-900 px-2 py-0.5 rounded text-emerald-200 border border-emerald-600 font-bold">TRÚNG ĐÍCH!</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="bg-amber-950/30 border border-amber-800/40 rounded-lg p-3 text-xs text-slate-300">
-                            ⛏️ <strong class="text-amber-300">Bản chất Proof-of-Work:</strong> Hàm băm SHA-256 hoàn toàn ngẫu nhiên và không thể tính ngược. Cách duy nhất là thử vận may từng con số Nonce. Con số 4404 tìm thấy chính là "Bằng chứng" chứng minh thợ đào đã bỏ công sức tính toán nghiêm túc!
                         </div>
                     </div>
                 `
@@ -1139,15 +1362,11 @@ public final class DashboardHtmlTemplate {
                                     <span class="text-[9px] bg-emerald-900 text-emerald-200 px-1.5 py-0.2 rounded font-bold">SEALED</span>
                                 </div>
                                 <div class="space-y-1 text-[11px]">
-                                    <div><span class="text-slate-500 text-[10px]">PrevHash:</span> <span class="text-cyan-400 font-bold">d997a9fa...449ed9</span></div>
+                                    <div><span class="text-slate-500 text-[10px]">PrevHash:</span> <span class="text-cyan-400 font-bold">d997a9fa...</span></div>
                                     <div><span class="text-slate-500 text-[10px]">Winning Nonce:</span> <span class="text-amber-400 font-bold">4404</span></div>
-                                    <div><span class="text-slate-500 text-[10px]">Merkle Root:</span> <span class="text-purple-300">077fe90f...</span></div>
-                                    <div><span class="text-slate-500 text-[10px]">Block Hash:</span> <span class="text-emerald-400 font-bold">002af149...8587f2</span></div>
+                                    <div><span class="text-slate-500 text-[10px]">Block Hash:</span> <span class="text-emerald-400 font-bold">002af149...</span></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="bg-cyan-950/30 border border-cyan-800/40 rounded-lg p-3 text-xs text-slate-300">
-                            🔗 <strong class="text-cyan-300">Tại sao gọi là Blockchain?</strong> Các khối móc xích vào nhau bằng <code class="text-cyan-200">previousHash</code>. Nếu kẻ gian sửa đổi Khối #0, mã băm của nó sẽ đổi, làm cho mối nối của Khối #1 lập tức bị đứt gãy và vô hiệu hóa toàn bộ chuỗi phía sau.
                         </div>
                     </div>
                 `
@@ -1172,13 +1391,7 @@ public final class DashboardHtmlTemplate {
                                     <span>[Port 8002] Node-B ➔ Node-C:</span>
                                     <span class="bg-purple-950 text-purple-200 px-2 py-0.5 rounded text-[10px] border border-purple-800">BLOCK_BROADCAST (Block #1)</span>
                                 </div>
-                                <div class="text-[11px] text-slate-400 pt-1 border-t border-slate-900">
-                                    Frame Size: <strong class="text-white">612 Bytes</strong> | Trạng thái: Đã chuyển tiếp thành công tới mọi Peer
-                                </div>
                             </div>
-                        </div>
-                        <div class="bg-amber-950/30 border border-amber-800/40 rounded-lg p-3 text-xs text-slate-300">
-                            ⚡ <strong class="text-amber-300">Đồng bộ tốc độ cao:</strong> Các nút nhận được khối sẽ tạm dừng việc đào vô ích trên khối cũ, thẩm định tính hợp lệ và sẵn sàng gom giao dịch mới để đào khối tiếp theo.
                         </div>
                     </div>
                 `
@@ -1198,22 +1411,16 @@ public final class DashboardHtmlTemplate {
                                 <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 text-center">
                                     <div class="text-xs font-bold text-white mb-1">Node A (Miner)</div>
                                     <div class="text-[10px] text-emerald-400 font-bold">Ledger Height: 2 Blocks</div>
-                                    <div class="text-[9px] text-slate-500 mt-1">Mempool: 0 txs (Đã dọn)</div>
                                 </div>
                                 <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 text-center">
                                     <div class="text-xs font-bold text-white mb-1">Node B (Relay)</div>
                                     <div class="text-[10px] text-emerald-400 font-bold">Ledger Height: 2 Blocks</div>
-                                    <div class="text-[9px] text-slate-500 mt-1">Mempool: 0 txs (Đã dọn)</div>
                                 </div>
                                 <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 text-center">
                                     <div class="text-xs font-bold text-white mb-1">Node C (Wallet)</div>
                                     <div class="text-[10px] text-emerald-400 font-bold">Ledger Height: 2 Blocks</div>
-                                    <div class="text-[9px] text-slate-500 mt-1">Trạng thái Tx: CONFIRMED ✅</div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="bg-emerald-950/40 border border-emerald-700/60 rounded-lg p-3 text-xs text-slate-200">
-                            🎉 <strong class="text-emerald-300">Hoàn Tất Toàn Vẹn:</strong> Giao dịch của Alice chuyển 15.5 COIN cho Bob đã chính thức được khắc ghi vĩnh viễn vào cuốn sổ cái phân tán của toàn mạng. Không ai có thể đảo ngược hay xóa bỏ!
                         </div>
                     </div>
                 `
