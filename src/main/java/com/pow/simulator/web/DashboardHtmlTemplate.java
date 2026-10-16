@@ -115,7 +115,7 @@ public final class DashboardHtmlTemplate {
                 </div>
                 <div id="connectionStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-700/50 text-emerald-400 font-medium">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span>Backend Port 8080: Online</span>
+                    <span id="backendPortLabel">Backend Port: Online</span>
                 </div>
             </div>
         </div>
@@ -361,7 +361,7 @@ public final class DashboardHtmlTemplate {
                 document.getElementById('connectionStatus').className = 
                     "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-700/50 text-emerald-400 font-medium";
                 document.getElementById('connectionStatus').innerHTML = 
-                    '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Backend Port 8080: Online</span>';
+                    '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Backend Port ' + (window.location.port || '8000') + ': Online</span>';
 
             } catch (err) {
                 console.warn('Backend fetch error:', err);

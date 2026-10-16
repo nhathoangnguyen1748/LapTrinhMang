@@ -107,7 +107,7 @@ Hệ thống cung cấp giao diện trực quan hóa tương tác theo thời gi
   $env:JAVA_HOME = "C:\Program Files\Apache NetBeans\jdk"
   & "C:\Program Files\Apache NetBeans\java\maven\bin\mvn.cmd" compile exec:java -Dexec.mainClass="com.pow.simulator.web.WebLauncher"
   ```
-- Trình duyệt sẽ tự động mở tại **`http://localhost:8080`**.
+- Trình duyệt sẽ tự động mở tại **`http://localhost:8000`**.
 - Giao diện tích hợp đầy đủ tính năng:
   - **Sơ đồ mạng P2P (Topology Canvas)** với các hạt chuyển động mô phỏng gói tin TCP giữa các cổng 8001, 8002, 8003, 8004.
   - **Nút điều khiển**: Gửi giao dịch (Node C -> B -> A), Khai thác PoW (Node A), Kết nối Node D (TCP Sync), Giả lập tấn công sửa dữ liệu (Audit Check).
@@ -121,7 +121,7 @@ Hệ thống cung cấp giao diện trực quan hóa tương tác theo thời gi
     npm install
     npm run dev
     ```
-  - Truy cập: **`http://localhost:3000`**. Ứng dụng Next.js kết nối ngược về backend Java cổng 8080 qua REST API.
+  - Truy cập: **`http://localhost:3000`**. Ứng dụng Next.js kết nối ngược về backend Java cổng 8000 qua REST API.
 
 ---
 

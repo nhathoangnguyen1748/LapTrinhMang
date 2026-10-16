@@ -11,7 +11,12 @@ set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 cd /d "%~dp0"
 
-call "C:\Program Files\Apache NetBeans\java\maven\bin\mvn.cmd" compile exec:java -Dexec.mainClass="com.pow.simulator.network.NetworkDemo"
+if not exist "target\classes\com\pow\simulator\network\NetworkDemo.class" (
+    echo [Thong bao] Dang bien dich ma nguon Java bang Maven...
+    call "C:\Program Files\Apache NetBeans\java\maven\bin\mvn.cmd" compile
+)
+
+java -cp "target\classes" com.pow.simulator.network.NetworkDemo
 
 echo.
 echo =========================================================================
