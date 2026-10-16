@@ -2,6 +2,7 @@ package com.pow.simulator.cli;
 
 import com.pow.simulator.attack.AttackSimulator;
 import com.pow.simulator.benchmark.BenchmarkRunner;
+import com.pow.simulator.consensus.InteractiveMinerCLI;
 import com.pow.simulator.consensus.MiningResult;
 import com.pow.simulator.consensus.MultiThreadedMiner;
 import com.pow.simulator.core.Block;
@@ -34,13 +35,19 @@ public class App {
         System.out.printf("Initialized Genesis Block #0 | Hash: %s | Diff: %d bits\n",
                 genesis.hash(), genesis.difficultyBits());
 
+        if (args.length > 0 && ("--interactive".equalsIgnoreCase(args[0]) || "-i".equalsIgnoreCase(args[0]) || "--miner".equalsIgnoreCase(args[0]))) {
+            InteractiveMinerCLI cli = new InteractiveMinerCLI();
+            cli.startInteractiveSession(chain);
+            return;
+        }
+
         MultiThreadedMiner miner = new MultiThreadedMiner(
                 MultiThreadedMiner.ExecutionMode.VIRTUAL_THREADS,
                 Runtime.getRuntime().availableProcessors()
         );
         DifficultyAdjuster adjuster = new DifficultyAdjuster(800L, 3, 4.0, 0.25, 6, 24);
 
-        System.out.println("\nMining sample transactions with Java Virtual Threads...");
+        System.out.println("\nMining sample transactions with Java Virtual Threads (MultiThreadedMiner)...");
         for (int i = 1; i <= 6; i++) {
             int targetDiff = adjuster.getNextDifficulty(chain);
 
