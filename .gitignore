@@ -56,3 +56,12 @@ Desktop.ini
 .DS_Store
 THLapTrinhMang/
 /POW/build/
+
+# Node.js & Next.js
+node_modules/
+.next/
+frontend-nextjs/node_modules/
+frontend-nextjs/.next/
+frontend-nextjs/out/
+*.tsbuildinfo
+
