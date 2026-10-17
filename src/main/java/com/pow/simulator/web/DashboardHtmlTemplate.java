@@ -41,62 +41,69 @@ public final class DashboardHtmlTemplate {
 
     <div class="max-w-7xl mx-auto w-full space-y-5">
 
-        <!-- 1. HEADER TINH GỌN NHẤT -->
-        <header class="bg-white border border-slate-200/90 rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+        <!-- 1. HEADER SỔ CÁI CHÍNH HIỆU -->
+        <header class="bg-white border border-slate-200/90 rounded-2xl px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xl shrink-0 font-bold">
+                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shrink-0 font-bold">
                     ⛓️
                 </div>
                 <div>
-                    <h1 class="text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                        SỔ CÁI CHUỖI KHỐI (BLOCKCHAIN LEDGER)
-                        <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">● ONLINE</span>
-                    </h1>
-                    <p class="text-xs text-slate-500 font-medium">Hệ Thống Bầu Cử Điện Tử Proof-of-Work &bull; Lập Trình Mạng HUTECH</p>
+                    <div class="flex items-center gap-2.5">
+                        <h1 class="text-base font-black text-slate-900 tracking-tight uppercase">
+                            SỔ CÁI CHUỖI KHỐI &bull; BLOCKCHAIN LEDGER
+                        </h1>
+                        <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
+                            ● TRỰC TUYẾN
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-mono">Hệ thống sổ cái phân tán &bull; Bất biến &bull; Đồng thuận PoW SHA-256</p>
                 </div>
             </div>
 
-            <!-- ĐỘ KHÓ CỐ ĐỊNH & NÚT PHÒNG BỎ PHIẾU -->
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-mono">
-                    <span class="text-slate-400 font-medium">Độ Khó:</span>
-                    <span class="font-bold text-slate-800">7 số 0 (0000000...)</span>
+            <div class="flex items-center gap-4 text-xs font-mono text-slate-500">
+                <div class="text-right hidden sm:block">
+                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Giao thức đồng thuận</div>
+                    <div class="font-bold text-slate-800 text-[11px]">Proof-of-Work (7 Zeros)</div>
                 </div>
-
-                <a href="/vote" target="_blank"
-                   class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition">
-                    <span>🗳️</span> Phòng Bỏ Phiếu Cử Tri ↗
-                </a>
+                <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+                <div class="text-right">
+                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Tính toàn vẹn</div>
+                    <div class="font-bold text-emerald-600 text-[11px]">100% Xác thực</div>
+                </div>
             </div>
         </header>
 
-        <!-- 2. THANH ĐIỀU KHIỂN MEMPOOL & NÚT KHAI THÁC POW -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xs">
-            <!-- MEMPOOL STATUS -->
-            <div class="flex items-center gap-4 flex-wrap">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">⏳</span>
-                    <div>
-                        <div class="text-xs font-bold text-slate-900">
-                            Hòm Phiếu Chờ (Mempool): <span id="mempoolBadgeCount" class="text-amber-600 font-mono font-black text-sm">0 phiếu</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 font-medium">
-                            Đồng bộ P2P: <span class="text-emerald-700 font-bold">Node 1 (Port 8000)</span> &bull; <span class="text-emerald-700 font-bold">Node 2</span> &bull; <span class="text-emerald-700 font-bold">Node 3</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TÓM TẮT PHIẾU CHỜ TRONG MEMPOOL -->
-                <div id="mempoolQuickPreview" class="hidden text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-mono">
-                    <!-- Danh sách ngắn gọn -->
+        <!-- 2. THỐNG KÊ CHỈ SỐ SỔ CÁI (LEDGER METRICS) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs">
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Chiều Cao Khối</div>
+                <div class="text-xl font-mono font-black text-slate-900 mt-0.5 flex items-baseline gap-1">
+                    <span id="statBlocks">0</span>
+                    <span class="text-xs font-normal text-slate-400">blocks</span>
                 </div>
             </div>
 
-            <!-- NÚT KHAI THÁC POW (MINE BLOCK) -->
-            <button onclick="mineBlock()" id="btnMine"
-                    class="w-full md:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                <span>⛏️</span> ĐÀO KHỐI (MINE BLOCK POW)
-            </button>
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs">
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Tổng Phiếu / Bản Ghi</div>
+                <div class="text-xl font-mono font-black text-slate-900 mt-0.5 flex items-baseline gap-1">
+                    <span id="statTotalVotes">0</span>
+                    <span class="text-xs font-normal text-slate-400">records</span>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs">
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Mã Băm Khối Mới Nhất</div>
+                <div id="statLatestHash" class="text-xs font-mono font-bold text-slate-700 mt-2 truncate">
+                    0000000...
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs">
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Trạng Thái Sổ Cái</div>
+                <div class="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md mt-1.5 inline-block">
+                    BẢO MẬT BẤT BIẾN
+                </div>
+            </div>
         </div>
  
         <!-- 3. SỔ CÁI CHUỖI KHỐI (CÁC BLOCK NỐI XÍCH VỚI NHAU) -->
@@ -105,11 +112,11 @@ public final class DashboardHtmlTemplate {
                 <div class="flex items-center gap-2">
                     <span class="text-base text-slate-500 font-bold">🔗</span>
                     <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        CHUỖI KHỐI SỔ CÁI (<span id="statBlocks">0</span> KHỐI ĐÃ KHÓA)
+                        CHUỖI KHỐI SỔ CÁI (<span id="statBlocksStream">0</span> KHỐI ĐÃ KHÓA)
                     </h2>
                 </div>
-                <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold">
-                    BẢO MẬT BẤT BIẾN
+                <span class="text-[10px] font-mono text-slate-400">
+                    Khóa xích SHA-256
                 </span>
             </div>
 
@@ -167,8 +174,11 @@ public final class DashboardHtmlTemplate {
     </div>
 
     <!-- FOOTER ĐƠN GIẢN -->
-    <footer class="max-w-7xl mx-auto w-full pt-6 text-center text-xs text-slate-400 font-medium">
-        Đồ án Lập Trình Mạng &bull; Sổ Cái Bầu Cử Phân Tán PoW (Java 21) &bull; HUTECH 2026
+    <footer class="max-w-7xl mx-auto w-full pt-6 pb-2 text-xs text-slate-400 font-medium flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-200/60 mt-4">
+        <span>Sổ Cái Chuỗi Khối Bất Biến &bull; Đồ án Lập Trình Mạng HUTECH</span>
+        <a href="/vote" target="_blank" class="text-slate-400 hover:text-indigo-600 transition font-mono text-[11px] flex items-center gap-1">
+            <span>🗳️</span> Cổng Bỏ Phiếu Cử Tri (/vote) ↗
+        </a>
     </footer>
 
     <!-- SCRIPT JAVASCRIPT -->
@@ -185,16 +195,17 @@ public final class DashboardHtmlTemplate {
 
         function renderDashboard(data) {
             // Stats
-            document.querySelectorAll('#statBlocks').forEach(el => el.textContent = data.blockCount);
-            document.getElementById('mempoolBadgeCount').textContent = data.mempool.length + ' phiếu';
+            document.querySelectorAll('#statBlocks, #statBlocksStream').forEach(el => el.textContent = data.blockCount);
 
-            // Preview mempool
-            const memPreview = document.getElementById('mempoolQuickPreview');
-            if (data.mempool && data.mempool.length > 0) {
-                memPreview.classList.remove('hidden');
-                memPreview.innerHTML = 'Phiếu chờ: ' + data.mempool.map(v => escapeHtml(v.voterId)).join(', ');
-            } else {
-                memPreview.classList.add('hidden');
+            const totalVotesEl = document.getElementById('statTotalVotes');
+            if (totalVotesEl) totalVotesEl.textContent = data.totalVotes;
+
+            const latestHashEl = document.getElementById('statLatestHash');
+            if (latestHashEl && data.blocks && data.blocks.length > 0) {
+                const last = data.blocks[data.blocks.length - 1];
+                const shortLast = last.hash.length > 18 ? (last.hash.substring(0, 10) + '...' + last.hash.substring(last.hash.length - 6)) : last.hash;
+                latestHashEl.textContent = shortLast;
+                latestHashEl.title = last.hash;
             }
 
             // RENDER CÁC BLOCK ĐƯỢC NỐI VỚI NHAU (COMPACT, BASIC & BEAUTIFUL, ZERO ICONS)
@@ -269,28 +280,6 @@ public final class DashboardHtmlTemplate {
             // Render 2 danh sách phong cách Etherscan
             renderLatestBlocks(data.blocks);
             renderLatestTransactions(data);
-        }
-
-        async function mineBlock() {
-            const btn = document.getElementById('btnMine');
-            btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span> ĐANG ĐÀO BLOCK...';
-
-            try {
-                const res = await fetch('/api/election/mine', { method: 'POST' });
-                const data = await res.json();
-                if (data.success) {
-                    alert('🎉 ĐÃ ĐÀO KHỐI THÀNH CÔNG!\\n\\nBlock mới:\\nHash: ' + data.hash + '\\nNonce: ' + data.nonce);
-                    fetchStatus();
-                } else {
-                    alert('❌ LỖI KHAI THÁC: ' + (data.error || 'Lỗi đóng khối!'));
-                }
-            } catch (err) {
-                alert('Lỗi: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<span>⛏️</span> ĐÀO KHỐI (MINE BLOCK POW)';
-            }
         }
 
         function formatContent(noiDung, isGenesis) {

@@ -42,6 +42,7 @@ public class NodeApiServer implements AutoCloseable {
     private boolean isTampered = false;
     private int tamperedBlockIndex = -1;
     private String tamperFailureReason = "";
+    private final java.util.concurrent.atomic.AtomicBoolean isMining = new java.util.concurrent.atomic.AtomicBoolean(false);
 
     public NodeApiServer(int httpPort) throws IOException {
         this.httpPort = httpPort;
@@ -114,6 +115,50 @@ public class NodeApiServer implements AutoCloseable {
     public void start() {
         httpServer.start();
         logEvent("Cổng Web Bầu Cử Blockchain sẵn sàng tại: http://localhost:" + httpPort);
+        if (!blockchain.getMempool().isEmpty()) {
+            triggerAutoMining();
+        }
+    }
+
+    public void triggerAutoMining() {
+        if (blockchain.getMempool().isEmpty()) return;
+        if (isMining.compareAndSet(false, true)) {
+            Thread.ofVirtual().name("pow-auto-miner").start(() -> {
+                try {
+                    int pendingCount = blockchain.getMempool().size();
+                    logEvent("⛏️ [AUTO-MINER] Tự động khai thác PoW để đóng gói " + pendingCount + " phiếu bầu trong Mempool...");
+                    long start = System.currentTimeMillis();
+
+                    Block minedBlock = blockchain.minePendingVotes();
+                    long duration = System.currentTimeMillis() - start;
+
+                    storage.saveChain(blockchain);
+
+                    logEvent("🎉 [ĐÃ ĐÓNG BLOCK MỚI] Node 1 hoàn tất Block #" + (blockchain.size() - 1)
+                            + " [Nonce: " + minedBlock.nonce() + " | Hash: " + minedBlock.getShortHash()
+                            + " | Thời gian: " + duration + " ms] đã lưu vào Sổ Cái!");
+
+                    for (PeerNode peer : clusterNodes) {
+                        if (peer.blockchain() != this.blockchain) {
+                            try {
+                                peer.blockchain().syncMinedBlock(minedBlock);
+                                logEvent("📡 [P2P BLOCK BROADCAST] Node 1 phát tán Block mới sang " + peer.name());
+                            } catch (Exception ex) {
+                                logEvent("⚠️ [P2P SYNC ERROR] " + peer.name() + ": " + ex.getMessage());
+                            }
+                        }
+                    }
+                    logEvent("🧹 Đã tự động dọn sạch các phiếu trong Mempool của CẢ " + clusterNodes.size() + " NODES!");
+                } catch (Exception ex) {
+                    logEvent("⚠️ [AUTO-MINER ERROR] " + ex.getMessage());
+                } finally {
+                    isMining.set(false);
+                    if (!blockchain.getMempool().isEmpty()) {
+                        triggerAutoMining();
+                    }
+                }
+            });
+        }
     }
 
     // =========================================================================
@@ -327,7 +372,10 @@ public class NodeApiServer implements AutoCloseable {
             }
             logEvent("✅ [HOÀN TẤT ĐỒNG BỘ] Phiếu bầu [" + voterId + "] đã có mặt trong Mempool của TẤT CẢ " + broadcastSuccessCount + " NODES!");
 
-            sendResponse(exchange, 200, "application/json", "{\"success\":true,\"message\":\"Đã nhận phiếu bầu và phát tán vào Mempool của tất cả " + broadcastSuccessCount + " Nodes thành công!\"}");
+            // 3. Tự động kích hoạt luồng đào PoW (Auto-Miner)
+            triggerAutoMining();
+
+            sendResponse(exchange, 200, "application/json", "{\"success\":true,\"message\":\"Đã nhận phiếu bầu và phát tán vào Mempool của tất cả " + broadcastSuccessCount + " Nodes thành công! Hệ thống đang tự động khai thác PoW để đóng khối.\"}");
         } catch (IllegalArgumentException e) {
             logEvent("⚠️ [TỪ CHỐI BỎ PHIẾU] " + e.getMessage());
             sendResponse(exchange, 400, "application/json", "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
@@ -338,6 +386,11 @@ public class NodeApiServer implements AutoCloseable {
 
     private void handleElectionMine(HttpExchange exchange) throws IOException {
         if (handleCors(exchange)) return;
+
+        if (isMining.get()) {
+            sendResponse(exchange, 400, "application/json", "{\"error\":\"Hệ thống đang tự động khai thác PoW trong nền. Vui lòng đợi trong giây lát...\"}");
+            return;
+        }
 
         try {
             int pendingCount = blockchain.getMempool().size();
