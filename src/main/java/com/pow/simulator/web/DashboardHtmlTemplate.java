@@ -147,6 +147,51 @@ public final class DashboardHtmlTemplate {
             </div>
         </main>
 
+        <!-- 4. DANH SÁCH LATEST BLOCKS & LATEST TRANSACTIONS (CHUẨN ETHERSCAN) -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- CỘT 1: LATEST BLOCKS -->
+            <div class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                Latest Blocks
+                            </h3>
+                        </div>
+                        <span id="latestBlocksHeaderCount" class="text-[11px] font-mono text-slate-400 font-bold">0 blocks</span>
+                    </div>
+                    <div id="latestBlocksList" class="divide-y divide-slate-100 min-h-[160px]">
+                        <!-- Render list of latest blocks -->
+                    </div>
+                </div>
+                <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                    <span class="text-[10px] font-mono text-slate-500 font-medium">PoW SHA-256 Engine &bull; Khối nối xích bất biến</span>
+                </div>
+            </div>
+
+            <!-- CỘT 2: LATEST TRANSACTIONS -->
+            <div class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                Latest Transactions
+                            </h3>
+                        </div>
+                        <span id="latestTxsHeaderCount" class="text-[11px] font-mono text-slate-400 font-bold">0 txns</span>
+                    </div>
+                    <div id="latestTxsList" class="divide-y divide-slate-100 min-h-[160px]">
+                        <!-- Render list of latest transactions -->
+                    </div>
+                </div>
+                <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                    <span class="text-[10px] font-mono text-slate-500 font-medium">Bầu cử P2P phi tập trung &bull; Mỗi cử tri 1 phiếu</span>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     <!-- FOOTER ĐƠN GIẢN -->
@@ -211,7 +256,7 @@ public final class DashboardHtmlTemplate {
                 alertBanner.classList.add('hidden');
             }
 
-            // RENDER CÁC BLOCK ĐƯỢC NỐI VỚI NHAU (5 THUỘC TÍNH)
+            // RENDER CÁC BLOCK ĐƯỢC NỐI VỚI NHAU (COMPACT, BASIC & BEAUTIFUL, ZERO ICONS)
             const chainCont = document.getElementById('blockchainContainer');
             chainCont.innerHTML = data.blocks.map((b, i) => {
                 const isGenesis = (i === 0);
@@ -222,73 +267,67 @@ public final class DashboardHtmlTemplate {
                 const rest = b.hash.substring(zeroCount);
 
                 return `
-                    <div class="w-[300px] shrink-0 bg-white border ${isTamperedBlock ? 'border-rose-400 bg-rose-50/20' : (isGenesis ? 'border-indigo-400' : 'border-slate-200')} rounded-xl p-4 shadow-2xs block-card space-y-2">
+                    <div class="w-[220px] shrink-0 bg-white border ${isTamperedBlock ? 'border-rose-400 bg-rose-50/20' : (isGenesis ? 'border-indigo-400' : 'border-slate-200')} rounded-xl p-3 shadow-2xs block-card space-y-2">
                         
                         <!-- BLOCK HEADER -->
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                            <span class="text-xs font-black ${isGenesis ? 'text-indigo-600' : 'text-slate-900'} font-mono uppercase">
-                                ${isGenesis ? '🌟 KHỐI #0 (GENESIS)' : '📦 KHỐI #' + i}
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                            <span class="text-xs font-bold font-mono ${isGenesis ? 'text-indigo-600' : 'text-slate-900'} uppercase">
+                                ${isGenesis ? 'GENESIS #0' : 'BLOCK #' + i}
                             </span>
-                            <span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono font-bold">
-                                Nonce: ${b.nonce}
+                            <span class="text-[9px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono font-bold">
+                                NONCE: ${b.nonce}
                             </span>
                         </div>
 
-                        <!-- 5 THUỘC TÍNH CHUẨN CỦA BLOCK -->
+                        <!-- 5 THUỘC TÍNH CỐT LÕI (BASIC, KHÔNG CẦN ICON) -->
                         <div class="space-y-1.5 text-xs">
                             
                             <!-- 1. HASH -->
                             <div>
-                                <div class="text-[10px] text-slate-400 font-medium flex items-center justify-between">
-                                    <span>1. Mã Băm (Hash):</span>
-                                    <span class="text-amber-700 font-bold font-mono text-[9px]">${zeroCount} số 0</span>
+                                <div class="text-[9px] font-mono font-semibold text-slate-400 flex items-center justify-between">
+                                    <span>HASH</span>
+                                    <span class="text-amber-700">${zeroCount} zeros</span>
                                 </div>
-                                <div class="p-1.5 bg-slate-50 rounded border border-slate-200 font-mono text-[10px] font-bold ${isTamperedBlock ? 'text-rose-600' : 'text-slate-800'} break-all">
-                                    <span class="bg-amber-100 text-amber-900 px-1 py-0.2 rounded font-black">${escapeHtml(leading)}</span>${escapeHtml(rest)}
+                                <div class="p-1 bg-slate-50 rounded border border-slate-200/80 font-mono text-[9px] ${isTamperedBlock ? 'text-rose-600 font-bold' : 'text-slate-700'} truncate">
+                                    <span class="text-amber-600 font-black">${escapeHtml(leading)}</span>${escapeHtml(rest.substring(0, 10))}...
                                 </div>
                             </div>
 
                             <!-- 2. TIME -->
-                            <div>
-                                <span class="text-[10px] text-slate-400 font-medium block">2. Thời Gian (Time):</span>
-                                <div class="text-slate-700 text-xs font-medium">
-                                    ⏱️ ${escapeHtml(b.time)}
-                                </div>
+                            <div class="flex items-center justify-between text-[9px] font-mono">
+                                <span class="font-semibold text-slate-400">TIME</span>
+                                <span class="text-slate-600 truncate max-w-[140px]">${escapeHtml(b.time)}</span>
                             </div>
 
                             <!-- 3. PRE HASH -->
                             <div>
-                                <span class="text-[10px] text-slate-400 font-medium block">3. Mã Khối Trước (Pre Hash):</span>
-                                <div class="p-1.5 bg-slate-50 rounded border border-slate-200 font-mono text-[9px] text-slate-500 break-all">
-                                    ${escapeHtml(b.preHash)}
+                                <span class="text-[9px] font-mono font-semibold text-slate-400 block">PREV HASH</span>
+                                <div class="p-1 bg-slate-50 rounded border border-slate-200/80 font-mono text-[9px] text-slate-400 truncate">
+                                    ${escapeHtml(b.preHash.substring(0, 16))}...
                                 </div>
                             </div>
 
                             <!-- 4. NỘI DUNG (CONTENT) -->
                             <div>
-                                <span class="text-[10px] text-slate-400 font-medium block">4. Nội Dung (Content):</span>
-                                <div class="p-2 bg-slate-50 rounded border border-slate-200 text-xs text-slate-800 font-medium break-words max-h-24 overflow-y-auto leading-relaxed">
+                                <span class="text-[9px] font-mono font-semibold text-slate-400 block">CONTENT</span>
+                                <div class="p-1.5 bg-slate-50 rounded border border-slate-200/80 text-[10px] text-slate-800 break-words max-h-16 overflow-y-auto leading-relaxed">
                                     ${formatContent(b.noiDung, isGenesis)}
                                 </div>
-                            </div>
-
-                            <!-- 5. NONCE -->
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-100">
-                                <span class="text-[10px] text-slate-400 font-medium">5. Số Nonce (PoW):</span>
-                                <span class="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded font-mono font-bold text-xs">
-                                    🎲 ${b.nonce}
-                                </span>
                             </div>
 
                         </div>
                     </div>
 
                     ${i < data.blocks.length - 1 ? `
-                    <div class="shrink-0 flex items-center text-indigo-500 text-sm font-bold select-none px-1">
-                        🔗 ➔
+                    <div class="shrink-0 flex items-center text-slate-300 font-mono text-xs select-none px-0.5">
+                        ➔
                     </div>` : ''}
                 `;
             }).join('');
+
+            // Render 2 danh sách phong cách Etherscan
+            renderLatestBlocks(data.blocks);
+            renderLatestTransactions(data);
         }
 
         async function mineBlock() {
@@ -337,13 +376,146 @@ public final class DashboardHtmlTemplate {
 
         function formatContent(noiDung, isGenesis) {
             if (isGenesis) {
-                return `<div class="text-slate-500 font-mono text-[11px] font-semibold">🌟 ${escapeHtml(noiDung)}</div>`;
+                return `<div class="text-slate-500 font-mono text-[10px] font-medium">${escapeHtml(noiDung)}</div>`;
             }
             const items = (noiDung || '').split(' | ');
             return items.map(item => {
-                return `<div class="py-0.5 font-mono text-[11px] text-slate-800 border-b border-slate-100 last:border-b-0 flex items-center justify-between gap-1">
-                    <span>🗳️ ${escapeHtml(item)}</span>
+                return `<div class="py-0.5 font-mono text-[10px] text-slate-800 border-b border-slate-100 last:border-b-0 truncate">
+                    ${escapeHtml(item)}
                 </div>`;
+            }).join('');
+        }
+
+        function renderLatestBlocks(blocks) {
+            const listCont = document.getElementById('latestBlocksList');
+            const countLabel = document.getElementById('latestBlocksHeaderCount');
+            if (countLabel) countLabel.textContent = (blocks ? blocks.length : 0) + ' blocks';
+
+            const latest = (blocks || []).slice().reverse().slice(0, 6);
+            if (latest.length === 0) {
+                listCont.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 font-mono">Chưa có khối nào</div>`;
+                return;
+            }
+
+            listCont.innerHTML = latest.map(b => {
+                const isGenesis = (b.index === 0);
+                const txCount = isGenesis ? 0 : (b.noiDung && b.noiDung.includes(' | ') ? b.noiDung.split(' | ').length : (b.noiDung ? 1 : 0));
+                const shortHash = b.hash.length > 14 ? (b.hash.substring(0, 8) + '...' + b.hash.substring(b.hash.length - 4)) : b.hash;
+
+                return `
+                    <div class="p-3.5 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/70 transition">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/90 flex items-center justify-center font-mono font-bold text-slate-600 text-[11px] shrink-0">
+                                Bk
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-600">#${b.index}</span>
+                                    <span class="text-[10px] text-slate-400 font-medium font-mono">${escapeHtml(b.time)}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 font-mono truncate mt-0.5">
+                                    Hash: <span class="text-slate-700 font-medium">${shortHash}</span> &bull; Nonce: <span class="text-slate-700">${b.nonce}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[10px] font-bold">
+                                ${txCount} txns
+                            </span>
+                            <div class="text-[9px] font-mono text-emerald-700 font-bold mt-1">
+                                ${isGenesis ? 'Genesis' : 'PoW Verified'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLatestTransactions(data) {
+            const listCont = document.getElementById('latestTxsList');
+            const countLabel = document.getElementById('latestTxsHeaderCount');
+            const txs = data.transactions || [];
+
+            let allTxs = [...txs];
+            if (allTxs.length === 0) {
+                (data.mempool || []).forEach(v => {
+                    allTxs.push({
+                        txHash: '0x' + (v.voteId || 'pending'),
+                        blockIndex: -1,
+                        status: 'Pending',
+                        voterId: v.voterId,
+                        candidate: v.candidate,
+                        time: v.time
+                    });
+                });
+                (data.blocks || []).slice(1).reverse().forEach(b => {
+                    const items = (b.noiDung || '').split(' | ');
+                    items.forEach((item, idx) => {
+                        let v = '', c = '';
+                        if (item.indexOf('Cử tri [') !== -1) {
+                            const vs = item.indexOf('Cử tri [') + 8;
+                            const ve = item.indexOf(']', vs);
+                            if (ve !== -1) v = item.substring(vs, ve);
+                        }
+                        if (item.indexOf('bầu cho [') !== -1) {
+                            const cs = item.indexOf('bầu cho [') + 9;
+                            const ce = item.indexOf(']', cs);
+                            if (ce !== -1) c = item.substring(cs, ce);
+                        }
+                        if (v || c) {
+                            allTxs.push({
+                                txHash: '0x' + b.hash.substring(0, 8),
+                                blockIndex: b.index,
+                                status: 'Confirmed',
+                                voterId: v || 'Cử tri',
+                                candidate: c || 'Ứng viên',
+                                time: b.time
+                            });
+                        }
+                    });
+                });
+            }
+
+            if (countLabel) countLabel.textContent = allTxs.length + ' txns';
+
+            const latest = allTxs.slice(0, 6);
+            if (latest.length === 0) {
+                listCont.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 font-mono">Chưa có giao dịch / phiếu bầu nào</div>`;
+                return;
+            }
+
+            listCont.innerHTML = latest.map(tx => {
+                const isPending = (tx.status === 'Pending' || tx.blockIndex === -1);
+                return `
+                    <div class="p-3.5 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/70 transition">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl ${isPending ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-slate-100 border-slate-200/90 text-slate-600'} border flex items-center justify-center font-mono font-bold text-[11px] shrink-0">
+                                Tx
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-600 truncate max-w-[110px]">${escapeHtml(tx.txHash)}</span>
+                                    <span class="text-[10px] text-slate-400 font-medium font-mono">${escapeHtml(tx.time)}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 font-mono truncate mt-0.5 flex items-center gap-1.5">
+                                    <span>From: <span class="text-slate-800 font-semibold">[${escapeHtml(tx.voterId)}]</span></span>
+                                    <span class="text-slate-300">➔</span>
+                                    <span>To: <span class="text-slate-800 font-semibold">[${escapeHtml(tx.candidate)}]</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                            <span class="px-2 py-0.5 rounded-md ${isPending ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'} font-mono text-[10px] font-bold">
+                                1 Phiếu
+                            </span>
+                            <div class="text-[9px] font-mono mt-1 ${isPending ? 'text-amber-600 font-bold' : 'text-slate-400'}">
+                                ${isPending ? 'In Mempool' : 'Block #' + tx.blockIndex}
+                            </div>
+                        </div>
+                    </div>
+                `;
             }).join('');
         }
 

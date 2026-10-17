@@ -198,6 +198,58 @@ public class NodeApiServer implements AutoCloseable {
         }
         sb.append("],");
 
+        // Danh sách Giao Dịch / Phiếu Bầu (Latest Transactions - Etherscan Style)
+        sb.append("\"transactions\":[");
+        int txCount = 0;
+        // 1. Giao dịch Mempool (Pending)
+        for (Vote v : mempoolVotes) {
+            if (txCount++ > 0) sb.append(",");
+            sb.append("{")
+              .append("\"txHash\":\"0x").append(escapeJson(v.voteId())).append("\",")
+              .append("\"blockIndex\":-1,")
+              .append("\"status\":\"Pending\",")
+              .append("\"voterId\":\"").append(escapeJson(v.voterId())).append("\",")
+              .append("\"candidate\":\"").append(escapeJson(v.candidate())).append("\",")
+              .append("\"time\":\"").append(escapeJson(v.timeFormatted())).append("\",")
+              .append("\"timestamp\":").append(v.timestamp())
+              .append("}");
+        }
+        // 2. Giao dịch đã đóng trong các Khối (Confirmed, duyệt từ khối mới nhất)
+        for (int bIdx = chainBlocks.size() - 1; bIdx >= 1; bIdx--) {
+            Block b = chainBlocks.get(bIdx);
+            String content = b.content();
+            String[] items = content.contains(" | ") ? content.split(" \\| ") : new String[]{content};
+            for (int subIdx = 0; subIdx < items.length; subIdx++) {
+                String raw = items[subIdx];
+                String voter = "";
+                String cand = "";
+                int vStart = raw.indexOf("Cử tri [");
+                if (vStart != -1) {
+                    int vEnd = raw.indexOf("]", vStart);
+                    if (vEnd != -1) voter = raw.substring(vStart + "Cử tri [".length(), vEnd);
+                }
+                int cStart = raw.indexOf("bầu cho [");
+                if (cStart != -1) {
+                    int cEnd = raw.indexOf("]", cStart);
+                    if (cEnd != -1) cand = raw.substring(cStart + "bầu cho [".length(), cEnd);
+                }
+                if (!voter.isBlank() || !cand.isBlank()) {
+                    if (txCount++ > 0) sb.append(",");
+                    String txHash = "0x" + com.pow.simulator.crypto.HashUtil.sha256Hex(b.hash() + ":" + voter + ":" + subIdx).substring(0, 8);
+                    sb.append("{")
+                      .append("\"txHash\":\"").append(txHash).append("\",")
+                      .append("\"blockIndex\":").append(bIdx).append(",")
+                      .append("\"status\":\"Confirmed\",")
+                      .append("\"voterId\":\"").append(escapeJson(voter)).append("\",")
+                      .append("\"candidate\":\"").append(escapeJson(cand)).append("\",")
+                      .append("\"time\":\"").append(escapeJson(b.time())).append("\",")
+                      .append("\"timestamp\":").append(b.timestamp())
+                      .append("}");
+                }
+            }
+        }
+        sb.append("],");
+
         // Trạng thái Cụm Mạng P2P Nodes
         sb.append("\"cluster\":[");
         for (int i = 0; i < clusterNodes.size(); i++) {
