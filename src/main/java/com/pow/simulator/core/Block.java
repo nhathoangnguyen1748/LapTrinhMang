@@ -58,8 +58,13 @@ public record Block(
         String preHash = "0".repeat(64);
         String content = "Khởi tạo hệ thống Bầu Cử Blockchain (Genesis Block)";
         long nonce = 0L;
-        String hash = calculateHash(preHash, timestamp, content, nonce);
-        return new Block(hash, timestamp, preHash, content, nonce);
+        while (true) {
+            String hash = calculateHash(preHash, timestamp, content, nonce);
+            if (hash.startsWith("00000")) {
+                return new Block(hash, timestamp, preHash, content, nonce);
+            }
+            nonce++;
+        }
     }
 
     // Các hàm alias tiện dụng theo yêu cầu đề bài: hash, time, pre hash, nội dung, nonce

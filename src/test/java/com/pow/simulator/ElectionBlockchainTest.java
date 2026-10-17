@@ -64,10 +64,10 @@ class ElectionBlockchainTest {
     }
 
     @Test
-    @DisplayName("Khai thác PoW: Đóng gói phiếu từ Mempool thành Block mới có 5 thuộc tính")
+    @DisplayName("Khai thác PoW: Đóng gói phiếu từ Mempool thành Block mới có 5 thuộc tính và 5 số 0 đầu")
     void testPoWMiningAndLedgerUpdate() {
         Blockchain chain = Blockchain.withDefaultGenesis();
-        chain.setDifficultyLeadingZeros(2); // Mục tiêu: hash bắt đầu bằng "00"
+        chain.setDifficultyLeadingZeros(5); // Mục tiêu: hash bắt đầu bằng "00000"
 
         Vote vote1 = new Vote("SV01 - Hoàng Nhật", "Lê Quang Minh");
         Vote vote2 = new Vote("SV02 - Trung Lương", "Nguyễn Hoàng Nhật");
@@ -81,7 +81,7 @@ class ElectionBlockchainTest {
 
         assertNotNull(minedBlock);
         assertEquals(2, chain.size(), "Chiều cao chuỗi phải tăng lên 2");
-        assertTrue(minedBlock.hash().startsWith("00"), "Mã hash khối mới phải bắt đầu bằng '00'");
+        assertTrue(minedBlock.hash().startsWith("00000"), "Mã hash khối mới phải bắt đầu bằng 5 số 0 ('00000')");
         assertEquals(chain.getBlock(0).hash(), minedBlock.previousHash(), "PreHash phải trỏ vào Genesis block");
         assertTrue(minedBlock.content().contains("SV01 - Hoàng Nhật"));
         assertTrue(minedBlock.content().contains("SV02 - Trung Lương"));

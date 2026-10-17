@@ -1,7 +1,10 @@
 package com.pow.simulator.core;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Sổ Cái Blockchain Bầu Cử (Election Blockchain Ledger).
@@ -12,7 +15,7 @@ public class Blockchain {
 
     private final List<Block> chain;
     private final List<Vote> mempool = new CopyOnWriteArrayList<>();
-    private int difficultyLeadingZeros = 2; // Mặc định 2 số '0' (00...) để đào nhanh mượt mà
+    private int difficultyLeadingZeros = 5; // Mặc định 5 số '0' ("00000...") theo yêu cầu!
 
     public Blockchain(Block genesisBlock) {
         Objects.requireNonNull(genesisBlock, "Genesis block must not be null");
@@ -142,23 +145,52 @@ public class Blockchain {
         String previousHash = getLatestBlock().hash();
         String targetPrefix = "0".repeat(difficultyLeadingZeros);
 
-        long nonce = 0;
-        String winningHash = "";
+        AtomicBoolean solved = new AtomicBoolean(false);
+        AtomicReference<Block> resultBlock = new AtomicReference<>(null);
+        AtomicLong nonceGenerator = new AtomicLong(0L);
 
-        // Chạy PoW tìm nonce
-        while (true) {
-            String candidateHash = Block.calculateHash(previousHash, timestamp, content, nonce);
-            if (candidateHash.startsWith(targetPrefix)) {
-                winningHash = candidateHash;
-                break;
+        int workers = Math.max(4, Runtime.getRuntime().availableProcessors());
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<?>> futures = new ArrayList<>();
+            for (int w = 0; w < workers; w++) {
+                futures.add(executor.submit(() -> {
+                    while (!solved.get() && !Thread.currentThread().isInterrupted()) {
+                        long chunkStart = nonceGenerator.getAndAdd(4096);
+                        for (long n = chunkStart; n < chunkStart + 4096; n++) {
+                            if ((n & 0xFF) == 0 && solved.get()) break;
+                            String h = Block.calculateHash(previousHash, timestamp, content, n);
+                            if (h.startsWith(targetPrefix)) {
+                                if (solved.compareAndSet(false, true)) {
+                                    resultBlock.set(new Block(h, timestamp, previousHash, content, n));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }));
             }
-            nonce++;
+            for (var f : futures) {
+                try {
+                    f.get();
+                } catch (Exception ignored) {}
+            }
         }
 
-        Block minedBlock = new Block(winningHash, timestamp, previousHash, content, nonce);
-        chain.add(minedBlock);
+        Block minedBlock = resultBlock.get();
+        if (minedBlock == null) {
+            // Fallback single-thread
+            long n = 0;
+            while (true) {
+                String h = Block.calculateHash(previousHash, timestamp, content, n);
+                if (h.startsWith(targetPrefix)) {
+                    minedBlock = new Block(h, timestamp, previousHash, content, n);
+                    break;
+                }
+                n++;
+            }
+        }
 
-        // Xóa các phiếu đã đào khỏi Mempool
+        chain.add(minedBlock);
         mempool.removeAll(votesToMine);
 
         return minedBlock;

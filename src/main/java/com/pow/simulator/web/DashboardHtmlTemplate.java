@@ -108,6 +108,12 @@ public final class DashboardHtmlTemplate {
                     <div class="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Phiếu Trong Mempool</div>
                     <div id="statMempool" class="text-lg font-black text-amber-400">0</div>
                 </div>
+                <div class="px-3.5 py-2 bg-slate-900 border border-amber-800/60 rounded-xl text-center">
+                    <div class="text-[10px] text-amber-400 uppercase font-mono tracking-wider">Độ Khó (PoW)</div>
+                    <div class="text-xs font-black text-amber-300 font-mono flex items-center justify-center gap-1">
+                        <span>🎯</span> 5 số 0 (00000...)
+                    </div>
+                </div>
                 <div id="chainStatusBadge" class="px-4 py-2 bg-emerald-950 border border-emerald-500/50 rounded-xl text-center">
                     <div class="text-[10px] text-emerald-300 uppercase font-mono tracking-wider">Trạng Thái Sổ Cái</div>
                     <div id="statIntegrity" class="text-xs font-black text-emerald-400 flex items-center gap-1 justify-center">
@@ -482,9 +488,12 @@ public final class DashboardHtmlTemplate {
                         <div class="space-y-1.5 text-xs font-mono">
                             <!-- 1. HASH -->
                             <div>
-                                <span class="text-[10px] text-slate-400 block">1. Mã Băm (Hash):</span>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] text-slate-400">1. Mã Băm (Hash):</span>
+                                    <span class="text-[9px] text-amber-400 font-bold">🎯 Độ khó: 5 số 0 đầu</span>
+                                </div>
                                 <div class="p-1.5 bg-slate-950 rounded border border-slate-800 text-[11px] font-bold ${isTamperedBlock ? 'text-rose-400' : 'text-emerald-400'} break-all">
-                                    ${escapeHtml(b.hash)}
+                                    <span class="text-amber-400 bg-amber-500/20 px-1 py-0.5 rounded font-black">${escapeHtml(b.hash.substring(0, 5))}</span>${escapeHtml(b.hash.substring(5))}
                                 </div>
                             </div>
 
@@ -562,13 +571,13 @@ public final class DashboardHtmlTemplate {
         async function mineBlock() {
             const btn = document.getElementById('btnMine');
             btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span> ĐANG ĐÀO BLOCK (PoW ĐA LUỒNG)...';
+            btn.innerHTML = '<span>⏳</span> ĐANG ĐÀO BLOCK (PoW Vét Cạn Nonce Tìm Hash 00000...)...';
 
             try {
                 const res = await fetch('/api/election/mine', { method: 'POST' });
                 const data = await res.json();
                 if (data.success) {
-                    alert('🎉 ĐÃ ĐÀO KHỐI THÀNH CÔNG!\\n\\nBlock mới đã được thêm vào Sổ Cái với Nonce: ' + data.nonce + '\\nHash: ' + data.hash.substring(0, 16) + '...\\nNội dung các phiếu bầu đã được khóa cứng vĩnh viễn!');
+                    alert('🎉 ĐÃ ĐÀO KHỐI THÀNH CÔNG!\\n\\nBlock mới thỏa mãn độ khó cao (5 số 0 ở đầu):\\nHash: ' + data.hash + '\\nNonce chiến thắng: ' + data.nonce + '\\nNội dung các phiếu bầu đã được khóa cứng vĩnh viễn!');
                     fetchStatus();
                 } else {
                     alert('❌ LỖI KHAI THÁC: ' + (data.error || 'Lỗi đóng khối!'));
