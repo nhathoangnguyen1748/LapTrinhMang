@@ -71,6 +71,22 @@
                     <mainClass>${exec.mainClass}</mainClass>
                 </configuration>
             </plugin>
+
+            <!-- Maven JAR Plugin configured for executable standalone JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <finalName>blockchain-evoting-node</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.pow.simulator.web.WebLauncher</mainClass>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

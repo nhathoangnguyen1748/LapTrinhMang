@@ -12,7 +12,13 @@ import java.net.URI;
 public class WebLauncher {
 
     public static void main(String[] args) {
-        int port = determinePort(8000, 8080);
+        int targetPort = 8000;
+        if (args != null && args.length > 0) {
+            try {
+                targetPort = Integer.parseInt(args[0]);
+            } catch (Exception ignored) {}
+        }
+        int port = determinePort(targetPort, targetPort + 80);
 
         System.out.println("=========================================================================");
         System.out.println("   KHOI CHAY GIAO DIEN TRUC QUAN P2P BLOCKCHAIN NETWORK (JAVA 21)        ");
