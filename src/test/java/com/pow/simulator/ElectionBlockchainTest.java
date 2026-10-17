@@ -191,4 +191,53 @@ class ElectionBlockchainTest {
         assertEquals(4, chain.size());
         assertTrue(chain.isChainValid());
     }
+
+    @Test
+    @DisplayName("Cụm mạng P2P đa Node: Phiếu bầu phát tán vào Mempool của tất cả các Node, khối đào đồng bộ toàn mạng")
+    void testMultiNodeClusterMempoolAndBlockSync() {
+        Blockchain node1 = Blockchain.withDefaultGenesis();
+        Blockchain node2 = node1.copy();
+        Blockchain node3 = node1.copy();
+
+        assertEquals(1, node1.size());
+        assertEquals(1, node2.size());
+        assertEquals(1, node3.size());
+
+        // Cử tri gửi phiếu bầu -> Phát tán P2P vào Mempool của cả 3 node
+        Vote vote = new Vote("2380601549", "Nguyễn Hoàng Nhật");
+        node1.addVoteToMempool(vote);
+        node2.addVoteToMempool(vote);
+        node3.addVoteToMempool(vote);
+
+        assertEquals(1, node1.getMempool().size());
+        assertEquals(1, node2.getMempool().size());
+        assertEquals(1, node3.getMempool().size());
+        assertEquals("2380601549", node2.getMempool().get(0).voterId());
+        assertEquals("2380601549", node3.getMempool().get(0).voterId());
+
+        // Node 1 đào khối PoW
+        node1.setDifficultyLeadingZeros(2);
+        node2.setDifficultyLeadingZeros(2);
+        node3.setDifficultyLeadingZeros(2);
+        Block minedBlock = node1.minePendingVotes();
+
+        // Node 1 đã đóng khối và dọn sạch mempool
+        assertEquals(2, node1.size());
+        assertEquals(0, node1.getMempool().size());
+
+        // Phát tán Block mới sang Node 2 và Node 3
+        node2.syncMinedBlock(minedBlock);
+        node3.syncMinedBlock(minedBlock);
+
+        // Cả 3 node đều có cùng chiều cao sổ cái và mempool đều sạch
+        assertEquals(2, node2.size());
+        assertEquals(2, node3.size());
+        assertEquals(0, node2.getMempool().size());
+        assertEquals(0, node3.getMempool().size());
+
+        // Cả 3 sổ cái đều hợp lệ tuyệt đối
+        assertTrue(node1.isChainValid());
+        assertTrue(node2.isChainValid());
+        assertTrue(node3.isChainValid());
+    }
 }

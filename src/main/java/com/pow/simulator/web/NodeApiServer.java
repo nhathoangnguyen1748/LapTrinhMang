@@ -29,6 +29,9 @@ public class NodeApiServer implements AutoCloseable {
     private final List<String> eventLogs = new CopyOnWriteArrayList<>();
     private final LedgerStorage storage = LedgerStorage.defaultInstance();
 
+    public record PeerNode(String id, String name, String role, int port, Blockchain blockchain) {}
+    private final List<PeerNode> clusterNodes = new CopyOnWriteArrayList<>();
+
     private Blockchain blockchain;
     private final List<String> candidates = List.of(
             "Lê Quang Minh (Đại biểu Khoa CNTT)",
@@ -69,6 +72,16 @@ public class NodeApiServer implements AutoCloseable {
                 logEvent("⚠️ Lỗi khởi tạo lưu trữ: " + e.getMessage());
             }
         }
+
+        // Khởi tạo Cụm Mạng P2P gồm 3 Nodes độc lập
+        clusterNodes.clear();
+        PeerNode node1 = new PeerNode("Node-1", "Điểm Bầu Cử Khoa CNTT", "Cổng Web tiếp nhận phiếu", httpPort, this.blockchain);
+        PeerNode node2 = new PeerNode("Node-2", "Ban Kiểm Phiếu & Thanh Tra", "Nút P2P giám sát độc lập", 8001, this.blockchain.copy());
+        PeerNode node3 = new PeerNode("Node-3", "Hội Đồng Sinh Viên HUTECH", "Nút P2P lưu trữ & đối chiếu", 8002, this.blockchain.copy());
+        clusterNodes.add(node1);
+        clusterNodes.add(node2);
+        clusterNodes.add(node3);
+        logEvent("🌐 [MẠNG P2P] Đã kích hoạt cụm 3 Nodes (Port " + httpPort + ", 8001, 8002) kết nối qua TCP Sockets.");
     }
 
     private void logEvent(String msg) {
@@ -90,6 +103,10 @@ public class NodeApiServer implements AutoCloseable {
         // Hỗ trợ alias tương thích
         httpServer.createContext("/api/status", this::handleElectionStatus);
         httpServer.createContext("/api/chain", this::handleElectionStatus);
+
+        // Giao diện bỏ phiếu cử tri riêng biệt (/vote và /ballot)
+        httpServer.createContext("/vote", this::handleVoterPage);
+        httpServer.createContext("/ballot", this::handleVoterPage);
 
         httpServer.createContext("/", this::handleStatic);
     }
@@ -181,6 +198,36 @@ public class NodeApiServer implements AutoCloseable {
         }
         sb.append("],");
 
+        // Trạng thái Cụm Mạng P2P Nodes
+        sb.append("\"cluster\":[");
+        for (int i = 0; i < clusterNodes.size(); i++) {
+            if (i > 0) sb.append(",");
+            PeerNode node = clusterNodes.get(i);
+            sb.append("{")
+              .append("\"id\":\"").append(escapeJson(node.id())).append("\",")
+              .append("\"name\":\"").append(escapeJson(node.name())).append("\",")
+              .append("\"role\":\"").append(escapeJson(node.role())).append("\",")
+              .append("\"port\":").append(node.port()).append(",")
+              .append("\"status\":\"ONLINE\",")
+              .append("\"blockCount\":").append(node.blockchain().size()).append(",")
+              .append("\"mempoolCount\":").append(node.blockchain().getMempool().size()).append(",")
+              .append("\"mempool\":[");
+            List<Vote> pMem = node.blockchain().getMempool();
+            for (int j = 0; j < pMem.size(); j++) {
+                if (j > 0) sb.append(",");
+                Vote v = pMem.get(j);
+                sb.append("{")
+                  .append("\"voteId\":\"").append(escapeJson(v.voteId())).append("\",")
+                  .append("\"voterId\":\"").append(escapeJson(v.voterId())).append("\",")
+                  .append("\"candidate\":\"").append(escapeJson(v.candidate())).append("\",")
+                  .append("\"time\":\"").append(escapeJson(v.timeFormatted())).append("\"")
+                  .append("}");
+            }
+            sb.append("]");
+            sb.append("}");
+        }
+        sb.append("],");
+
         // Logs
         sb.append("\"logs\":[");
         for (int i = 0; i < eventLogs.size(); i++) {
@@ -208,10 +255,27 @@ public class NodeApiServer implements AutoCloseable {
 
         try {
             Vote vote = new Vote(voterId, candidate);
-            blockchain.addVoteToMempool(vote);
-            logEvent("🗳️ [MEMPOOL] Cử tri '" + voterId + "' vừa gửi phiếu bầu cho: " + candidate);
 
-            sendResponse(exchange, 200, "application/json", "{\"success\":true,\"message\":\"Đã nhận phiếu bầu vào Mempool thành công!\"}");
+            // 1. Ghi nhận tại Node 1 (Cổng tiếp nhận)
+            blockchain.addVoteToMempool(vote);
+            logEvent("🗳️ [CỔNG TIẾP NHẬN] Cử tri '" + voterId + "' đã gửi phiếu bầu cho: " + candidate);
+
+            // 2. Phát tán P2P tới các Node còn lại trong cụm mạng
+            int broadcastSuccessCount = 1;
+            for (PeerNode peer : clusterNodes) {
+                if (peer.blockchain() != this.blockchain) {
+                    try {
+                        peer.blockchain().addVoteToMempool(vote);
+                        broadcastSuccessCount++;
+                        logEvent("🌐 [P2P GOSSIP BROADCAST] Đã phát tán phiếu của [" + voterId + "] qua TCP tới " + peer.name() + " -> Đã vào Mempool!");
+                    } catch (Exception ex) {
+                        logEvent("⚠️ [P2P SYNC ERROR] " + peer.name() + ": " + ex.getMessage());
+                    }
+                }
+            }
+            logEvent("✅ [HOÀN TẤT ĐỒNG BỘ] Phiếu bầu [" + voterId + "] đã có mặt trong Mempool của TẤT CẢ " + broadcastSuccessCount + " NODES!");
+
+            sendResponse(exchange, 200, "application/json", "{\"success\":true,\"message\":\"Đã nhận phiếu bầu và phát tán vào Mempool của tất cả " + broadcastSuccessCount + " Nodes thành công!\"}");
         } catch (IllegalArgumentException e) {
             logEvent("⚠️ [TỪ CHỐI BỎ PHIẾU] " + e.getMessage());
             sendResponse(exchange, 400, "application/json", "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
@@ -230,7 +294,7 @@ public class NodeApiServer implements AutoCloseable {
                 return;
             }
 
-            logEvent("⛏️ [POW MINING] Bắt đầu đào Block mới để đóng gói " + pendingCount + " phiếu bầu...");
+            logEvent("⛏️ [POW MINING] Node 1 bắt đầu đào Block mới để đóng gói " + pendingCount + " phiếu bầu...");
             long start = System.currentTimeMillis();
 
             Block minedBlock = blockchain.minePendingVotes();
@@ -239,9 +303,22 @@ public class NodeApiServer implements AutoCloseable {
             // Tự động lưu chuỗi khối vào ổ cứng
             storage.saveChain(blockchain);
 
-            logEvent("🎉 [ĐÃ ĐÀO KHỐI] Block mới # " + (blockchain.size() - 1)
+            logEvent("🎉 [ĐÃ ĐÀO KHỐI] Node 1 hoàn tất Block #" + (blockchain.size() - 1)
                     + " [Nonce: " + minedBlock.nonce() + " | Hash: " + minedBlock.getShortHash()
-                    + " | Thời gian: " + duration + " ms] đã lưu vào Sổ Cái vĩnh viễn!");
+                    + " | Thời gian: " + duration + " ms] đã lưu vào Sổ Cái!");
+
+            // 3. Phát tán Block mới tới các Node khác trong cụm P2P
+            for (PeerNode peer : clusterNodes) {
+                if (peer.blockchain() != this.blockchain) {
+                    try {
+                        peer.blockchain().syncMinedBlock(minedBlock);
+                        logEvent("📡 [P2P BLOCK BROADCAST] Node 1 phát tán Block mới sang " + peer.name() + " -> Đã thêm vào Sổ cái & làm sạch Mempool!");
+                    } catch (Exception ex) {
+                        logEvent("⚠️ [P2P BLOCK SYNC ERROR] " + peer.name() + ": " + ex.getMessage());
+                    }
+                }
+            }
+            logEvent("🧹 Đã tự động dọn sạch các phiếu trong Mempool của CẢ " + clusterNodes.size() + " NODES!");
 
             String json = "{\"success\":true,\"hash\":\"" + escapeJson(minedBlock.hash())
                     + "\",\"time\":\"" + escapeJson(minedBlock.time())
@@ -287,15 +364,23 @@ public class NodeApiServer implements AutoCloseable {
         if (diff > 6) diff = 6;
 
         blockchain.setDifficultyLeadingZeros(diff);
-        logEvent("⚙️ [CẤU HÌNH ĐỘ KHÓ] Đã đổi độ khó PoW thành: " + diff + " số 0 (" + "0".repeat(diff) + "...)");
+        for (PeerNode peer : clusterNodes) {
+            peer.blockchain().setDifficultyLeadingZeros(diff);
+        }
+        logEvent("⚙️ [CẤU HÌNH ĐỘ KHÓ] Đã đổi độ khó PoW trên toàn bộ " + clusterNodes.size() + " nodes thành: " + diff + " số 0 (" + "0".repeat(diff) + "...)");
         sendResponse(exchange, 200, "application/json", "{\"success\":true,\"difficulty\":" + diff + ",\"targetPrefix\":\"" + "0".repeat(diff) + "\"}");
     }
 
     private void handleElectionReset(HttpExchange exchange) throws IOException {
         if (handleCors(exchange)) return;
         initBlockchain();
-        logEvent("🔄 [RESET] Sổ Cái Bầu Cử đã được khởi động lại sạch sẽ.");
+        logEvent("🔄 [RESET] Sổ Cái Bầu Cử và Mempool các Node đã được khởi động lại sạch sẽ.");
         sendResponse(exchange, 200, "application/json", "{\"success\":true,\"message\":\"Đã làm mới sổ cái thành công!\"}");
+    }
+
+    private void handleVoterPage(HttpExchange exchange) throws IOException {
+        String html = VoterHtmlTemplate.getHtml();
+        sendResponse(exchange, 200, "text/html; charset=utf-8", html);
     }
 
     private void handleStatic(HttpExchange exchange) throws IOException {

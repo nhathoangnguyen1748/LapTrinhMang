@@ -81,7 +81,33 @@ public class Blockchain {
     }
 
     public Blockchain copy() {
-        return new Blockchain(new ArrayList<>(this.chain));
+        Blockchain b = new Blockchain(new ArrayList<>(this.chain));
+        b.setDifficultyLeadingZeros(this.difficultyLeadingZeros);
+        for (Vote v : this.mempool) {
+            b.mempool.add(v);
+        }
+        return b;
+    }
+
+    public synchronized void clearMempool() {
+        this.mempool.clear();
+    }
+
+    /**
+     * Đồng bộ Block mới nhận được từ Peer Node qua mạng P2P.
+     * Thêm Block vào sổ cái và tự động xóa các phiếu trong Mempool đã được đóng khối.
+     */
+    public synchronized void syncMinedBlock(Block block) {
+        Objects.requireNonNull(block, "Block không được null");
+        Block latest = getLatestBlock();
+        if (!block.previousHash().equals(latest.hash())) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash linkage mismatch: block previousHash %s does not match latest hash %s",
+                    block.previousHash(), latest.hash()));
+        }
+        chain.add(block);
+        String content = block.content();
+        mempool.removeIf(v -> content.contains(v.toText()) || content.contains("[" + v.voterId() + "]"));
     }
 
     public synchronized boolean replaceChain(List<Block> newChain) {

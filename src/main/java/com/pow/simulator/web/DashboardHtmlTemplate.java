@@ -130,6 +130,9 @@ public final class DashboardHtmlTemplate {
                         <span>🛡️</span> AN TOÀN 100%
                     </div>
                 </div>
+                <a href="/vote" target="_blank" class="px-4 py-2.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-500 hover:via-indigo-500 hover:to-sky-500 text-white rounded-xl text-xs font-black shadow-lg shadow-purple-900/40 flex items-center gap-1.5 transition-all transform hover:scale-105 border border-purple-400/40">
+                    <span>🗳️</span> PHÒNG BỎ PHIẾU CỬ TRI (/vote)
+                </a>
             </div>
         </header>
 
@@ -252,9 +255,26 @@ public final class DashboardHtmlTemplate {
                             <span class="text-xl">⏳</span>
                             <h3 class="text-sm font-bold text-slate-200">2. HÒM PHIẾU TẠM (MEMPOOL)</h3>
                         </div>
-                        <span id="mempoolBadgeCount" class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full text-xs font-mono font-bold">
-                            0 phiếu chờ
-                        </span>
+                    <!-- ĐỒNG BỘ MEMPOOL TRÊN CỤM 3 NODES P2P -->
+                    <div class="mb-3 p-2.5 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
+                        <div class="text-[11px] font-bold text-sky-400 flex items-center justify-between">
+                            <span>🌐 ĐỒNG BỘ MEMPOOL 3 NODES P2P:</span>
+                            <span class="text-[9px] font-mono text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">● 3/3 NODES IN SYNC</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+                            <div class="bg-slate-900 p-1.5 rounded border border-slate-800">
+                                <div class="text-slate-400 truncate">Node 1 (CNTT)</div>
+                                <div id="dashNode1Mem" class="text-amber-400 font-bold text-xs mt-0.5">0 phiếu</div>
+                            </div>
+                            <div class="bg-slate-900 p-1.5 rounded border border-slate-800">
+                                <div class="text-slate-400 truncate">Node 2 (Giám Sát)</div>
+                                <div id="dashNode2Mem" class="text-amber-400 font-bold text-xs mt-0.5">0 phiếu</div>
+                            </div>
+                            <div class="bg-slate-900 p-1.5 rounded border border-slate-800">
+                                <div class="text-slate-400 truncate">Node 3 (Hội Đồng)</div>
+                                <div id="dashNode3Mem" class="text-amber-400 font-bold text-xs mt-0.5">0 phiếu</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="mempoolList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
@@ -436,6 +456,16 @@ public final class DashboardHtmlTemplate {
                 badge.className = "px-4 py-2 bg-emerald-950 border border-emerald-500/50 rounded-xl text-center glow-green";
                 badge.innerHTML = '<div class="text-[10px] text-emerald-300 uppercase font-mono tracking-wider">Trạng Thái Sổ Cái</div><div class="text-xs font-black text-emerald-400 flex items-center gap-1 justify-center"><span>🛡️</span> AN TOÀN 100%</div>';
                 alertBanner.classList.add('hidden');
+            }
+
+            // Render P2P Cluster Mempools
+            if (data.cluster && data.cluster.length >= 3) {
+                const n1 = document.getElementById('dashNode1Mem');
+                const n2 = document.getElementById('dashNode2Mem');
+                const n3 = document.getElementById('dashNode3Mem');
+                if (n1) n1.textContent = data.cluster[0].mempoolCount + ' phiếu';
+                if (n2) n2.textContent = data.cluster[1].mempoolCount + ' phiếu';
+                if (n3) n3.textContent = data.cluster[2].mempoolCount + ' phiếu';
             }
 
             // Render Mempool
