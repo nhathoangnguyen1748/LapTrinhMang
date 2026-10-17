@@ -164,4 +164,31 @@ class ElectionBlockchainTest {
         assertEquals(original.getBlock(1).content(), restored.getBlock(1).content());
         assertEquals(original.getBlock(1).nonce(), restored.getBlock(1).nonce());
     }
+
+    @Test
+    @DisplayName("Độ khó tùy chỉnh linh hoạt: Có thể thay đổi từ 1 đến 5 số 0 theo ý muốn")
+    void testDynamicDifficultyCustomization() {
+        Blockchain chain = Blockchain.withDefaultGenesis();
+
+        // Độ khó = 2
+        chain.setDifficultyLeadingZeros(2);
+        chain.addVoteToMempool(new Vote("VoterA", "Candidate1"));
+        Block b1 = chain.minePendingVotes();
+        assertTrue(b1.hash().startsWith("00"));
+
+        // Thay đổi sang Độ khó = 3
+        chain.setDifficultyLeadingZeros(3);
+        chain.addVoteToMempool(new Vote("VoterB", "Candidate2"));
+        Block b2 = chain.minePendingVotes();
+        assertTrue(b2.hash().startsWith("000"));
+
+        // Thay đổi sang Độ khó = 4
+        chain.setDifficultyLeadingZeros(4);
+        chain.addVoteToMempool(new Vote("VoterC", "Candidate3"));
+        Block b3 = chain.minePendingVotes();
+        assertTrue(b3.hash().startsWith("0000"));
+
+        assertEquals(4, chain.size());
+        assertTrue(chain.isChainValid());
+    }
 }

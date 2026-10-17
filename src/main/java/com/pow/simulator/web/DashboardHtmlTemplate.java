@@ -108,10 +108,20 @@ public final class DashboardHtmlTemplate {
                     <div class="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Phiếu Trong Mempool</div>
                     <div id="statMempool" class="text-lg font-black text-amber-400">0</div>
                 </div>
-                <div class="px-3.5 py-2 bg-slate-900 border border-amber-800/60 rounded-xl text-center">
-                    <div class="text-[10px] text-amber-400 uppercase font-mono tracking-wider">Độ Khó (PoW)</div>
-                    <div class="text-xs font-black text-amber-300 font-mono flex items-center justify-center gap-1">
-                        <span>🎯</span> 5 số 0 (00000...)
+                <div class="px-3.5 py-1.5 bg-slate-900 border border-amber-800/60 rounded-xl text-center flex flex-col justify-center">
+                    <div class="text-[10px] text-amber-400 uppercase font-mono tracking-wider mb-1 flex items-center justify-center gap-1">
+                        <span>🎯</span> Độ Khó PoW (Tuỳ Chỉnh)
+                    </div>
+                    <div class="flex items-center gap-1 justify-center">
+                        <select id="difficultySelect" onchange="changeDifficulty(this.value)"
+                                class="bg-slate-950 border border-amber-600/50 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-amber-300 focus:outline-none focus:border-amber-400 cursor-pointer">
+                            <option value="1">1 số 0 (0... ~1ms)</option>
+                            <option value="2">2 số 0 (00... ~5ms)</option>
+                            <option value="3">3 số 0 (000... ~30ms)</option>
+                            <option value="4">4 số 0 (0000... ~100ms)</option>
+                            <option value="5" selected>5 số 0 (00000... ~400ms)</option>
+                            <option value="6">6 số 0 (000000... ~3s)</option>
+                        </select>
                     </div>
                 </div>
                 <div id="chainStatusBadge" class="px-4 py-2 bg-emerald-950 border border-emerald-500/50 rounded-xl text-center">
@@ -384,7 +394,29 @@ public final class DashboardHtmlTemplate {
             }
         }
 
+        async function changeDifficulty(val) {
+            try {
+                const res = await fetch('/api/election/difficulty', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ difficulty: parseInt(val) })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    fetchStatus();
+                }
+            } catch (err) {
+                console.error("Lỗi đổi độ khó:", err);
+            }
+        }
+
         function renderDashboard(data) {
+            // Sync difficulty select if not focused
+            const diffSel = document.getElementById('difficultySelect');
+            if (diffSel && data.difficulty && document.activeElement !== diffSel) {
+                diffSel.value = data.difficulty;
+            }
+
             // Stats
             document.getElementById('statBlocks').textContent = data.blockCount;
             document.getElementById('statTotalVotes').textContent = data.totalVotes;
@@ -472,6 +504,10 @@ public final class DashboardHtmlTemplate {
             chainCont.innerHTML = data.blocks.map((b, i) => {
                 const isGenesis = (i === 0);
                 const isTamperedBlock = data.isTampered && data.tamperedBlockIndex === i;
+                const zeroMatches = b.hash.match(/^0+/) || [''];
+                const zeroCount = zeroMatches[0].length;
+                const leading = b.hash.substring(0, zeroCount);
+                const rest = b.hash.substring(zeroCount);
 
                 return `
                     <div class="min-w-[320px] max-w-[340px] flex-shrink-0 bg-slate-900 border-2 ${isTamperedBlock ? 'border-rose-500 glow-danger' : (isGenesis ? 'border-purple-500/50' : 'border-sky-500/50')} rounded-2xl p-4 shadow-xl space-y-2.5">
@@ -490,10 +526,10 @@ public final class DashboardHtmlTemplate {
                             <div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-[10px] text-slate-400">1. Mã Băm (Hash):</span>
-                                    <span class="text-[9px] text-amber-400 font-bold">🎯 Độ khó: 5 số 0 đầu</span>
+                                    <span class="text-[9px] text-amber-400 font-bold">🎯 ${zeroCount} số 0 đầu</span>
                                 </div>
                                 <div class="p-1.5 bg-slate-950 rounded border border-slate-800 text-[11px] font-bold ${isTamperedBlock ? 'text-rose-400' : 'text-emerald-400'} break-all">
-                                    <span class="text-amber-400 bg-amber-500/20 px-1 py-0.5 rounded font-black">${escapeHtml(b.hash.substring(0, 5))}</span>${escapeHtml(b.hash.substring(5))}
+                                    <span class="text-amber-400 bg-amber-500/20 px-1 py-0.5 rounded font-black">${escapeHtml(leading)}</span>${escapeHtml(rest)}
                                 </div>
                             </div>
 
@@ -570,14 +606,16 @@ public final class DashboardHtmlTemplate {
 
         async function mineBlock() {
             const btn = document.getElementById('btnMine');
+            const diffSel = document.getElementById('difficultySelect');
+            const diffVal = diffSel ? diffSel.value : '5';
             btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span> ĐANG ĐÀO BLOCK (PoW Vét Cạn Nonce Tìm Hash 00000...)...';
+            btn.innerHTML = `<span>⏳</span> ĐANG ĐÀO BLOCK (PoW Tìm ${diffVal} Số 0 Đầu)...`;
 
             try {
                 const res = await fetch('/api/election/mine', { method: 'POST' });
                 const data = await res.json();
                 if (data.success) {
-                    alert('🎉 ĐÃ ĐÀO KHỐI THÀNH CÔNG!\\n\\nBlock mới thỏa mãn độ khó cao (5 số 0 ở đầu):\\nHash: ' + data.hash + '\\nNonce chiến thắng: ' + data.nonce + '\\nNội dung các phiếu bầu đã được khóa cứng vĩnh viễn!');
+                    alert(`🎉 ĐÃ ĐÀO KHỐI THÀNH CÔNG!\\n\\nBlock mới thỏa mãn độ khó (${diffVal} số 0 ở đầu):\\nHash: ${data.hash}\\nNonce chiến thắng: ${data.nonce}\\nNội dung các phiếu bầu đã được khóa cứng vĩnh viễn!`);
                     fetchStatus();
                 } else {
                     alert('❌ LỖI KHAI THÁC: ' + (data.error || 'Lỗi đóng khối!'));

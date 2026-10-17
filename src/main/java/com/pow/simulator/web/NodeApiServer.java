@@ -83,6 +83,7 @@ public class NodeApiServer implements AutoCloseable {
         httpServer.createContext("/api/election/status", this::handleElectionStatus);
         httpServer.createContext("/api/election/vote", this::handleElectionVote);
         httpServer.createContext("/api/election/mine", this::handleElectionMine);
+        httpServer.createContext("/api/election/difficulty", this::handleElectionDifficulty);
         httpServer.createContext("/api/election/tamper", this::handleElectionTamper);
         httpServer.createContext("/api/election/reset", this::handleElectionReset);
 
@@ -121,6 +122,8 @@ public class NodeApiServer implements AutoCloseable {
         sb.append("\"tamperReason\":\"").append(escapeJson(tamperFailureReason)).append("\",");
         sb.append("\"totalVotes\":").append(totalVotes).append(",");
         sb.append("\"blockCount\":").append(chainBlocks.size()).append(",");
+        sb.append("\"difficulty\":").append(blockchain.getDifficultyLeadingZeros()).append(",");
+        sb.append("\"targetPrefix\":\"").append("0".repeat(blockchain.getDifficultyLeadingZeros())).append("\",");
         sb.append("\"storagePath\":\"").append(escapeJson(storage.getChainFile().toAbsolutePath().toString())).append("\",");
         sb.append("\"storageSize\":").append(storage.getChainFileSize()).append(",");
 
@@ -271,6 +274,21 @@ public class NodeApiServer implements AutoCloseable {
 
         logEvent("🚨 [CẢNH BÁO GIAN LẬN] Nội dung Khối #" + targetIndex + " đã bị cố ý can thiệp! Sổ cái lập tức báo động đỏ.");
         sendResponse(exchange, 200, "application/json", "{\"success\":true,\"message\":\"Đã can thiệp sửa đổi nội dung khối để kiểm tra tính bảo mật!\"}");
+    }
+
+    private void handleElectionDifficulty(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        int diff = 3;
+        try {
+            diff = Integer.parseInt(extractJsonField(body, "difficulty", "3"));
+        } catch (Exception ignored) {}
+        if (diff < 1) diff = 1;
+        if (diff > 6) diff = 6;
+
+        blockchain.setDifficultyLeadingZeros(diff);
+        logEvent("⚙️ [CẤU HÌNH ĐỘ KHÓ] Đã đổi độ khó PoW thành: " + diff + " số 0 (" + "0".repeat(diff) + "...)");
+        sendResponse(exchange, 200, "application/json", "{\"success\":true,\"difficulty\":" + diff + ",\"targetPrefix\":\"" + "0".repeat(diff) + "\"}");
     }
 
     private void handleElectionReset(HttpExchange exchange) throws IOException {
