@@ -56,19 +56,11 @@ public final class DashboardHtmlTemplate {
                 </div>
             </div>
 
-            <!-- ĐỘ KHÓ & NÚT PHÒNG BỎ PHIẾU -->
+            <!-- ĐỘ KHÓ CỐ ĐỊNH & NÚT PHÒNG BỎ PHIẾU -->
             <div class="flex items-center gap-3">
-                <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
-                    <span class="text-slate-500 font-medium">Độ Khó:</span>
-                    <select id="difficultySelect" onchange="changeDifficulty(this.value)"
-                            class="bg-transparent font-mono font-bold text-slate-900 focus:outline-none cursor-pointer">
-                        <option value="1">1 số 0 (0...)</option>
-                        <option value="2">2 số 0 (00...)</option>
-                        <option value="3">3 số 0 (000...)</option>
-                        <option value="4">4 số 0 (0000...)</option>
-                        <option value="5" selected>5 số 0 (00000...)</option>
-                        <option value="6">6 số 0 (000000...)</option>
-                    </select>
+                <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-mono">
+                    <span class="text-slate-400 font-medium">Độ Khó:</span>
+                    <span class="font-bold text-slate-800">7 số 0 (0000000...)</span>
                 </div>
 
                 <a href="/vote" target="_blank"
@@ -106,21 +98,7 @@ public final class DashboardHtmlTemplate {
                 <span>⛏️</span> ĐÀO KHỐI (MINE BLOCK POW)
             </button>
         </div>
-
-        <!-- CẢNH BÁO NẾU PHÁT HIỆN GIAN LẬN SỬA SỔ CÁI -->
-        <div id="tamperAlertBanner" class="hidden bg-rose-50 border border-rose-300 text-rose-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-            <div class="flex items-center gap-3">
-                <span class="text-xl">🚨</span>
-                <div>
-                    <h3 class="font-bold text-xs text-rose-900 uppercase">Cảnh Báo: Phát Hiện Sửa Đổi Khối Trong Sổ Cái!</h3>
-                    <p id="tamperReasonText" class="text-xs text-rose-700 font-mono mt-0.5"></p>
-                </div>
-            </div>
-            <button onclick="resetElection()" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition">
-                Phục Hồi
-            </button>
-        </div>
-
+ 
         <!-- 3. SỔ CÁI CHUỖI KHỐI (CÁC BLOCK NỐI XÍCH VỚI NHAU) -->
         <main class="bg-white border border-slate-200/90 rounded-2xl p-5 md:p-6 shadow-2xs space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -130,15 +108,9 @@ public final class DashboardHtmlTemplate {
                         CHUỖI KHỐI SỔ CÁI (<span id="statBlocks">0</span> KHỐI ĐÃ KHÓA)
                     </h2>
                 </div>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="tamperTest()" class="text-xs text-rose-600 hover:text-rose-800 font-medium px-2.5 py-1 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer">
-                        ⚠️ Thử Gian Lận
-                    </button>
-                    <button onclick="resetElection()" class="text-xs text-slate-600 hover:text-slate-800 font-medium px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer">
-                        🔄 Reset Sổ Cái
-                    </button>
-                </div>
+                <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold">
+                    BẢO MẬT BẤT BIẾN
+                </span>
             </div>
 
             <!-- CHUỖI KHỐI NỐI XÍCH (HORIZONTAL STREAM) -->
@@ -211,29 +183,7 @@ public final class DashboardHtmlTemplate {
             }
         }
 
-        async function changeDifficulty(val) {
-            try {
-                const res = await fetch('/api/election/difficulty', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ difficulty: parseInt(val) })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    fetchStatus();
-                }
-            } catch (err) {
-                console.error("Lỗi đổi độ khó:", err);
-            }
-        }
-
         function renderDashboard(data) {
-            // Sync difficulty select
-            const diffSel = document.getElementById('difficultySelect');
-            if (diffSel && data.difficulty && document.activeElement !== diffSel) {
-                diffSel.value = data.difficulty;
-            }
-
             // Stats
             document.querySelectorAll('#statBlocks').forEach(el => el.textContent = data.blockCount);
             document.getElementById('mempoolBadgeCount').textContent = data.mempool.length + ' phiếu';
@@ -245,15 +195,6 @@ public final class DashboardHtmlTemplate {
                 memPreview.innerHTML = 'Phiếu chờ: ' + data.mempool.map(v => escapeHtml(v.voterId)).join(', ');
             } else {
                 memPreview.classList.add('hidden');
-            }
-
-            // Tamper status
-            const alertBanner = document.getElementById('tamperAlertBanner');
-            if (data.isTampered || !data.isChainValid) {
-                alertBanner.classList.remove('hidden');
-                document.getElementById('tamperReasonText').textContent = data.tamperReason || 'Mã hash không còn khớp với nội dung!';
-            } else {
-                alertBanner.classList.add('hidden');
             }
 
             // RENDER CÁC BLOCK ĐƯỢC NỐI VỚI NHAU (COMPACT, BASIC & BEAUTIFUL, ZERO ICONS)
@@ -349,28 +290,6 @@ public final class DashboardHtmlTemplate {
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<span>⛏️</span> ĐÀO KHỐI (MINE BLOCK POW)';
-            }
-        }
-
-        async function tamperTest() {
-            if (!confirm('Thử nghiệm sửa đổi nội dung Khối #1 trong Sổ Cái để kiểm tra mã băm SHA-256?')) return;
-            try {
-                const res = await fetch('/api/election/tamper', { method: 'POST' });
-                const data = await res.json();
-                if (data.success) fetchStatus();
-            } catch (err) {
-                alert('Lỗi: ' + err.message);
-            }
-        }
-
-        async function resetElection() {
-            if (!confirm('Làm mới lại toàn bộ Sổ Cái về Genesis Block #0?')) return;
-            try {
-                const res = await fetch('/api/election/reset', { method: 'POST' });
-                const data = await res.json();
-                if (data.success) fetchStatus();
-            } catch (err) {
-                alert('Lỗi: ' + err.message);
             }
         }
 

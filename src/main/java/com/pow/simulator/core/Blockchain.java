@@ -15,7 +15,7 @@ public class Blockchain {
 
     private final List<Block> chain;
     private final List<Vote> mempool = new CopyOnWriteArrayList<>();
-    private int difficultyLeadingZeros = 5; // Mặc định 5 số '0' ("00000...") theo yêu cầu!
+    private int difficultyLeadingZeros = 7; // Mặc định 7 số '0' ("0000000...") theo yêu cầu!
 
     public Blockchain(Block genesisBlock) {
         Objects.requireNonNull(genesisBlock, "Genesis block must not be null");
