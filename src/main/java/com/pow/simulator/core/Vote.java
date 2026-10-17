@@ -38,6 +38,13 @@ public record Vote(
     }
 
     public String toText() {
-        return String.format("Cử tri [%s] bầu cho [%s]", voterId, candidate);
+        String shortCand = candidate;
+        if (shortCand != null && shortCand.contains("(")) {
+            shortCand = shortCand.substring(0, shortCand.indexOf("(")).trim();
+        }
+        if (shortCand == null || shortCand.isBlank()) {
+            return String.format("Cử tri [%s]: 1 phiếu", voterId);
+        }
+        return String.format("Cử tri [%s]: 1 phiếu (bầu cho [%s])", voterId, shortCand);
     }
 }

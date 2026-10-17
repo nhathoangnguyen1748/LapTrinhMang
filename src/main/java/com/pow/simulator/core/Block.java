@@ -56,7 +56,7 @@ public record Block(
 
     public static Block createGenesisBlock(long timestamp) {
         String preHash = "0".repeat(64);
-        String content = "Khởi tạo hệ thống Bầu Cử Blockchain (Genesis Block)";
+        String content = "Khởi tạo hệ thống (0 phiếu)";
         long nonce = 0L;
         while (true) {
             String hash = calculateHash(preHash, timestamp, content, nonce);

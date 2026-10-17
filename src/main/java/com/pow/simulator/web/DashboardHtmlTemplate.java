@@ -267,8 +267,8 @@ public final class DashboardHtmlTemplate {
                             <!-- 4. NỘI DUNG (CONTENT) -->
                             <div>
                                 <span class="text-[10px] text-slate-400 font-medium block">4. Nội Dung (Content):</span>
-                                <div class="p-2 bg-indigo-50/50 rounded border border-indigo-100 text-xs text-indigo-950 font-medium break-words max-h-20 overflow-y-auto leading-relaxed">
-                                    📜 ${escapeHtml(b.noiDung)}
+                                <div class="p-2 bg-slate-50 rounded border border-slate-200 text-xs text-slate-800 font-medium break-words max-h-24 overflow-y-auto leading-relaxed">
+                                    ${formatContent(b.noiDung, isGenesis)}
                                 </div>
                             </div>
 
@@ -333,6 +333,18 @@ public final class DashboardHtmlTemplate {
             } catch (err) {
                 alert('Lỗi: ' + err.message);
             }
+        }
+
+        function formatContent(noiDung, isGenesis) {
+            if (isGenesis) {
+                return `<div class="text-slate-500 font-mono text-[11px] font-semibold">🌟 ${escapeHtml(noiDung)}</div>`;
+            }
+            const items = (noiDung || '').split(' | ');
+            return items.map(item => {
+                return `<div class="py-0.5 font-mono text-[11px] text-slate-800 border-b border-slate-100 last:border-b-0 flex items-center justify-between gap-1">
+                    <span>🗳️ ${escapeHtml(item)}</span>
+                </div>`;
+            }).join('');
         }
 
         function escapeHtml(text) {

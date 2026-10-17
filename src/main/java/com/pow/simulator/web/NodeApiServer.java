@@ -34,9 +34,9 @@ public class NodeApiServer implements AutoCloseable {
 
     private Blockchain blockchain;
     private final List<String> candidates = List.of(
-            "Lê Quang Minh (Đại biểu Khoa CNTT)",
-            "Nguyễn Đỗ Trung Lương (Đại biểu Ban Học Tập)",
-            "Nguyễn Hoàng Nhật (Đại biểu Ban Phong Trào)"
+            "Lê Quang Minh",
+            "Nguyễn Đỗ Trung Lương",
+            "Nguyễn Hoàng Nhật"
     );
 
     private boolean isTampered = false;

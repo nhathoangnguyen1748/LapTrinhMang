@@ -244,7 +244,7 @@ public class Blockchain {
                     String candInVote = content.substring(start + "bầu cho [".length(), end).trim();
                     for (String c : registeredCandidates) {
                         String coreName = c.contains("(") ? c.substring(0, c.indexOf("(")).trim() : c;
-                        if (candInVote.equalsIgnoreCase(c) || candInVote.toLowerCase().contains(coreName.toLowerCase()) || c.toLowerCase().contains(candInVote.toLowerCase())) {
+                        if (candInVote.equalsIgnoreCase(c) || candInVote.equalsIgnoreCase(coreName) || candInVote.toLowerCase().contains(coreName.toLowerCase()) || c.toLowerCase().contains(candInVote.toLowerCase())) {
                             results.put(c, results.getOrDefault(c, 0) + 1);
                             break;
                         }

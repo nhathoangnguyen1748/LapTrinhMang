@@ -107,7 +107,7 @@ public final class VoterHtmlTemplate {
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5" id="candidatesList">
                     <!-- Candidate 1 -->
                     <div class="candidate-card border-2 border-slate-200 bg-white rounded-xl p-4 cursor-pointer select-none flex flex-col justify-between shadow-xs"
-                         onclick="selectCandidate('Lê Quang Minh (Đại biểu Khoa CNTT)', this)">
+                         onclick="selectCandidate('Lê Quang Minh', this)">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-lg font-bold">
                                 👨‍💼
@@ -125,7 +125,7 @@ public final class VoterHtmlTemplate {
 
                     <!-- Candidate 2 -->
                     <div class="candidate-card border-2 border-slate-200 bg-white rounded-xl p-4 cursor-pointer select-none flex flex-col justify-between shadow-xs"
-                         onclick="selectCandidate('Nguyễn Đỗ Trung Lương (Đại biểu Ban Học Tập)', this)">
+                         onclick="selectCandidate('Nguyễn Đỗ Trung Lương', this)">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-lg font-bold">
                                 👨‍🎓
@@ -143,7 +143,7 @@ public final class VoterHtmlTemplate {
 
                     <!-- Candidate 3 -->
                     <div class="candidate-card border-2 border-slate-200 bg-white rounded-xl p-4 cursor-pointer select-none flex flex-col justify-between shadow-xs"
-                         onclick="selectCandidate('Nguyễn Hoàng Nhật (Đại biểu Ban Phong Trào)', this)">
+                         onclick="selectCandidate('Nguyễn Hoàng Nhật', this)">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-lg font-bold">
                                 👨‍💻
