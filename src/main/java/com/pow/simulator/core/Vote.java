@@ -43,8 +43,8 @@ public record Vote(
             shortCand = shortCand.substring(0, shortCand.indexOf("(")).trim();
         }
         if (shortCand == null || shortCand.isBlank()) {
-            return String.format("Cử tri [%s]: 1 phiếu", voterId);
+            return String.format("Cu tri [%s]: 1 phieu", voterId);
         }
-        return String.format("Cử tri [%s]: 1 phiếu (bầu cho [%s])", voterId, shortCand);
+        return String.format("Cu tri [%s]: 1 phieu (bau cho [%s])", voterId, shortCand);
     }
 }

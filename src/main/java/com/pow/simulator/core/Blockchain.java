@@ -226,6 +226,29 @@ public class Blockchain {
     //  THỐNG KÊ SỔ CÁI BẦU CỬ
     // =========================================================================
 
+    public static String removeAccents(String str) {
+        if (str == null) return "";
+        String n = java.text.Normalizer.normalize(str, java.text.Normalizer.Form.NFD);
+        n = n.replaceAll("\\p{M}", "");
+        n = n.replace("đ", "d").replace("Đ", "D");
+        return n;
+    }
+
+    public static String normalizeCandidateName(String raw) {
+        if (raw == null) return "";
+        String lower = raw.toLowerCase();
+        if (lower.contains("nhat") || lower.contains("nh?t") || (lower.contains("nguy") && (lower.contains("ho") || lower.contains("nh")))) {
+            return "Nguyen Hoang Nhat";
+        }
+        if (lower.contains("luong") || lower.contains("lương") || lower.contains("trung")) {
+            return "Nguyen Do Trung Luong";
+        }
+        if (lower.contains("minh") || lower.contains("quang")) {
+            return "Le Quang Minh";
+        }
+        return removeAccents(raw).replaceAll("[^a-zA-Z0-9 ]", "").trim();
+    }
+
     /**
      * Đếm tổng số phiếu của từng ứng cử viên được lưu trong toàn bộ Sổ Cái.
      */
@@ -237,19 +260,31 @@ public class Blockchain {
 
         for (int i = 1; i < chain.size(); i++) { // Bỏ qua Genesis Block
             String content = chain.get(i).content();
-            int start = content.indexOf("bầu cho [");
+            int start = -1;
+            int idx1 = content.indexOf("bầu cho [");
+            int idx2 = content.indexOf("bau cho [");
+            if (idx1 != -1 && idx2 != -1) start = Math.min(idx1, idx2);
+            else if (idx1 != -1) start = idx1;
+            else start = idx2;
+
             while (start != -1) {
                 int end = content.indexOf("]", start);
                 if (end != -1) {
-                    String candInVote = content.substring(start + "bầu cho [".length(), end).trim();
+                    int prefixLen = content.startsWith("bầu cho [", start) ? "bầu cho [".length() : "bau cho [".length();
+                    String candInVote = content.substring(start + prefixLen, end).trim();
+                    String normVote = normalizeCandidateName(candInVote);
                     for (String c : registeredCandidates) {
-                        String coreName = c.contains("(") ? c.substring(0, c.indexOf("(")).trim() : c;
-                        if (candInVote.equalsIgnoreCase(c) || candInVote.equalsIgnoreCase(coreName) || candInVote.toLowerCase().contains(coreName.toLowerCase()) || c.toLowerCase().contains(candInVote.toLowerCase())) {
+                        String normC = normalizeCandidateName(c);
+                        if (normVote.equalsIgnoreCase(normC)) {
                             results.put(c, results.getOrDefault(c, 0) + 1);
                             break;
                         }
                     }
-                    start = content.indexOf("bầu cho [", end);
+                    int next1 = content.indexOf("bầu cho [", end);
+                    int next2 = content.indexOf("bau cho [", end);
+                    if (next1 != -1 && next2 != -1) start = Math.min(next1, next2);
+                    else if (next1 != -1) start = next1;
+                    else start = next2;
                 } else {
                     break;
                 }
@@ -263,19 +298,22 @@ public class Blockchain {
      */
     public List<String> getAllVotedVoters() {
         List<String> voters = new ArrayList<>();
+        String[] prefixes = {"Cử tri [", "Cu tri ["};
         for (int i = 1; i < chain.size(); i++) {
             String content = chain.get(i).content();
-            int startIdx = 0;
-            while ((startIdx = content.indexOf("Cử tri [", startIdx)) != -1) {
-                int endIdx = content.indexOf("]", startIdx);
-                if (endIdx != -1) {
-                    String voter = content.substring(startIdx + "Cử tri [".length(), endIdx);
-                    if (!voters.contains(voter)) {
-                        voters.add(voter);
+            for (String prefix : prefixes) {
+                int startIdx = 0;
+                while ((startIdx = content.indexOf(prefix, startIdx)) != -1) {
+                    int endIdx = content.indexOf("]", startIdx);
+                    if (endIdx != -1) {
+                        String voter = content.substring(startIdx + prefix.length(), endIdx).trim();
+                        if (!voters.contains(voter)) {
+                            voters.add(voter);
+                        }
+                        startIdx = endIdx;
+                    } else {
+                        break;
                     }
-                    startIdx = endIdx;
-                } else {
-                    break;
                 }
             }
         }
@@ -284,8 +322,11 @@ public class Blockchain {
 
     public boolean hasVotedInLedger(String voterId) {
         if (voterId == null || voterId.isBlank()) return false;
+        String cleanV = removeAccents(voterId).trim();
         for (String v : getAllVotedVoters()) {
-            if (v.equalsIgnoreCase(voterId.trim())) return true;
+            if (v.equalsIgnoreCase(voterId.trim()) || removeAccents(v).trim().equalsIgnoreCase(cleanV)) {
+                return true;
+            }
         }
         return false;
     }

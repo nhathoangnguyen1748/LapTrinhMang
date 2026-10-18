@@ -34,9 +34,9 @@ public class NodeApiServer implements AutoCloseable {
 
     private Blockchain blockchain;
     private final List<String> candidates = List.of(
-            "Lê Quang Minh",
-            "Nguyễn Đỗ Trung Lương",
-            "Nguyễn Hoàng Nhật"
+            "Le Quang Minh",
+            "Nguyen Do Trung Luong",
+            "Nguyen Hoang Nhat"
     );
 
     private boolean isTampered = false;
@@ -249,12 +249,14 @@ public class NodeApiServer implements AutoCloseable {
         // 1. Giao dịch Mempool (Pending)
         for (Vote v : mempoolVotes) {
             if (txCount++ > 0) sb.append(",");
+            String cleanVoter = Blockchain.removeAccents(v.voterId()).trim();
+            String cleanCand = Blockchain.normalizeCandidateName(v.candidate());
             sb.append("{")
               .append("\"txHash\":\"0x").append(escapeJson(v.voteId())).append("\",")
               .append("\"blockIndex\":-1,")
               .append("\"status\":\"Pending\",")
-              .append("\"voterId\":\"").append(escapeJson(v.voterId())).append("\",")
-              .append("\"candidate\":\"").append(escapeJson(v.candidate())).append("\",")
+              .append("\"voterId\":\"").append(escapeJson(cleanVoter)).append("\",")
+              .append("\"candidate\":\"").append(escapeJson(cleanCand)).append("\",")
               .append("\"time\":\"").append(escapeJson(v.timeFormatted())).append("\",")
               .append("\"timestamp\":").append(v.timestamp())
               .append("}");
@@ -269,24 +271,28 @@ public class NodeApiServer implements AutoCloseable {
                 String voter = "";
                 String cand = "";
                 int vStart = raw.indexOf("Cử tri [");
+                if (vStart == -1) vStart = raw.indexOf("Cu tri [");
                 if (vStart != -1) {
                     int vEnd = raw.indexOf("]", vStart);
-                    if (vEnd != -1) voter = raw.substring(vStart + "Cử tri [".length(), vEnd);
+                    if (vEnd != -1) voter = raw.substring(raw.indexOf("[", vStart) + 1, vEnd);
                 }
                 int cStart = raw.indexOf("bầu cho [");
+                if (cStart == -1) cStart = raw.indexOf("bau cho [");
                 if (cStart != -1) {
                     int cEnd = raw.indexOf("]", cStart);
-                    if (cEnd != -1) cand = raw.substring(cStart + "bầu cho [".length(), cEnd);
+                    if (cEnd != -1) cand = raw.substring(raw.indexOf("[", cStart) + 1, cEnd);
                 }
                 if (!voter.isBlank() || !cand.isBlank()) {
                     if (txCount++ > 0) sb.append(",");
+                    String cleanVoter = Blockchain.removeAccents(voter).trim();
+                    String cleanCand = Blockchain.normalizeCandidateName(cand);
                     String txHash = "0x" + com.pow.simulator.crypto.HashUtil.sha256Hex(b.hash() + ":" + voter + ":" + subIdx).substring(0, 8);
                     sb.append("{")
                       .append("\"txHash\":\"").append(txHash).append("\",")
                       .append("\"blockIndex\":").append(bIdx).append(",")
                       .append("\"status\":\"Confirmed\",")
-                      .append("\"voterId\":\"").append(escapeJson(voter)).append("\",")
-                      .append("\"candidate\":\"").append(escapeJson(cand)).append("\",")
+                      .append("\"voterId\":\"").append(escapeJson(cleanVoter)).append("\",")
+                      .append("\"candidate\":\"").append(escapeJson(cleanCand)).append("\",")
                       .append("\"time\":\"").append(escapeJson(b.time())).append("\",")
                       .append("\"timestamp\":").append(b.timestamp())
                       .append("}");

@@ -91,8 +91,8 @@ public final class VoterHtmlTemplate {
                 <!-- Gợi ý nhanh cho demo -->
                 <div class="mt-2.5 flex items-center gap-2 flex-wrap text-xs text-slate-500">
                     <span class="text-[11px] font-medium">⚡ Chọn nhanh để demo:</span>
-                    <button type="button" onclick="fillVoter('2380601549')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-md text-indigo-700 font-mono text-[11px] border border-slate-200 transition font-bold">2380601549 (Nhật)</button>
-                    <button type="button" onclick="fillVoter('2380601305')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-md text-indigo-700 font-mono text-[11px] border border-slate-200 transition font-bold">2380601305 (Lương)</button>
+                    <button type="button" onclick="fillVoter('2380601549')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-md text-indigo-700 font-mono text-[11px] border border-slate-200 transition font-bold">2380601549 (Nhat)</button>
+                    <button type="button" onclick="fillVoter('2380601305')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-md text-indigo-700 font-mono text-[11px] border border-slate-200 transition font-bold">2380601305 (Luong)</button>
                     <button type="button" onclick="fillVoter('2380601342')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-md text-indigo-700 font-mono text-[11px] border border-slate-200 transition font-bold">2380601342 (Minh)</button>
                 </div>
             </div>
@@ -107,14 +107,14 @@ public final class VoterHtmlTemplate {
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5" id="candidatesList">
                     <!-- Candidate 1 -->
                     <div class="candidate-card border-2 border-slate-200 bg-white rounded-xl p-4 cursor-pointer select-none flex flex-col justify-between shadow-xs"
-                         onclick="selectCandidate('Lê Quang Minh', this)">
+                         onclick="selectCandidate('Le Quang Minh', this)">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-lg font-bold">
                                 👨‍💼
                             </div>
                             <div>
                                 <div class="text-[10px] text-sky-600 font-mono font-bold uppercase">Ứng viên #01</div>
-                                <div class="text-sm font-bold text-slate-900">Lê Quang Minh</div>
+                                <div class="text-sm font-bold text-slate-900">Le Quang Minh</div>
                             </div>
                         </div>
                         <div class="text-xs text-slate-500 border-t border-slate-100 pt-2 flex items-center justify-between font-medium">
@@ -125,14 +125,14 @@ public final class VoterHtmlTemplate {
 
                     <!-- Candidate 2 -->
                     <div class="candidate-card border-2 border-slate-200 bg-white rounded-xl p-4 cursor-pointer select-none flex flex-col justify-between shadow-xs"
-                         onclick="selectCandidate('Nguyễn Đỗ Trung Lương', this)">
+                         onclick="selectCandidate('Nguyen Do Trung Luong', this)">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-lg font-bold">
                                 👨‍🎓
                             </div>
                             <div>
                                 <div class="text-[10px] text-emerald-600 font-mono font-bold uppercase">Ứng viên #02</div>
-                                <div class="text-sm font-bold text-slate-900">Nguyễn Đỗ Trung Lương</div>
+                                <div class="text-sm font-bold text-slate-900">Nguyen Do Trung Luong</div>
                             </div>
                         </div>
                         <div class="text-xs text-slate-500 border-t border-slate-100 pt-2 flex items-center justify-between font-medium">
@@ -143,14 +143,14 @@ public final class VoterHtmlTemplate {
 
                     <!-- Candidate 3 -->
                     <div class="candidate-card border-2 border-slate-200 bg-white rounded-xl p-4 cursor-pointer select-none flex flex-col justify-between shadow-xs"
-                         onclick="selectCandidate('Nguyễn Hoàng Nhật', this)">
+                         onclick="selectCandidate('Nguyen Hoang Nhat', this)">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-lg font-bold">
                                 👨‍💻
                             </div>
                             <div>
                                 <div class="text-[10px] text-amber-600 font-mono font-bold uppercase">Ứng viên #03</div>
-                                <div class="text-sm font-bold text-slate-900">Nguyễn Hoàng Nhật</div>
+                                <div class="text-sm font-bold text-slate-900">Nguyen Hoang Nhat</div>
                             </div>
                         </div>
                         <div class="text-xs text-slate-500 border-t border-slate-100 pt-2 flex items-center justify-between font-medium">

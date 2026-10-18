@@ -15,7 +15,7 @@ public final class DashboardHtmlTemplate {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>voteChain Explorer | Sổ Cái Chuỗi Khối</title>
+    <title>voteChain Explorer | So Cai Chuoi Khoi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -51,25 +51,25 @@ public final class DashboardHtmlTemplate {
                 <div>
                     <div class="flex items-center gap-2.5">
                         <h1 class="text-base font-black text-slate-900 tracking-tight uppercase">
-                            voteChain &bull; SỔ CÁI CHUỖI KHỐI
+                            voteChain &bull; SO CAI CHUOI KHOI
                         </h1>
                         <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> TRỰC TUYẾN
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> TRUC TUYEN
                         </span>
                     </div>
-                    <p class="text-[11px] text-slate-400 font-mono">Mạng voteChain &bull; Sổ cái phân tán &bull; Đồng thuận PoW SHA-256</p>
+                    <p class="text-[11px] text-slate-400 font-mono">Mang voteChain &bull; So cai phan tan &bull; Dong thuan PoW SHA-256</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4 text-xs font-mono text-slate-500">
                 <div class="text-right hidden sm:block">
-                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Tên mạng / Giao thức</div>
+                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Ten mang / Giao thuc</div>
                     <div class="font-bold text-slate-800 text-[11px]">voteChain (PoW 7 Zeros)</div>
                 </div>
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
                 <div class="text-right">
-                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Tính toàn vẹn</div>
-                    <div class="font-bold text-emerald-600 text-[11px]">100% Xác thực</div>
+                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Tinh toan ven</div>
+                    <div class="font-bold text-emerald-600 text-[11px]">100% Xac thuc</div>
                 </div>
             </div>
         </header>
@@ -77,7 +77,7 @@ public final class DashboardHtmlTemplate {
         <!-- 2. BĂNG CHỈ SỐ VĨ MÔ (EXECUTIVE METRICS CARDS - 100% ĐỒNG BỘ CHIỀU CAO) -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs h-[88px] flex flex-col justify-between">
-                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Chiều Cao Khối (Height)</div>
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Chieu Cao Khoi (Height)</div>
                 <div class="text-xl font-mono font-black text-slate-900 flex items-baseline gap-1">
                     <span id="statBlocks">0</span>
                     <span class="text-xs font-normal text-slate-400">blocks</span>
@@ -85,7 +85,7 @@ public final class DashboardHtmlTemplate {
             </div>
 
             <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs h-[88px] flex flex-col justify-between">
-                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Tổng Phiếu / Bản Ghi</div>
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Tong Phieu / Ban Ghi</div>
                 <div class="text-xl font-mono font-black text-slate-900 flex items-baseline gap-1">
                     <span id="statTotalVotes">0</span>
                     <span class="text-xs font-normal text-slate-400">records</span>
@@ -93,17 +93,17 @@ public final class DashboardHtmlTemplate {
             </div>
 
             <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs h-[88px] flex flex-col justify-between">
-                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Mã Băm Khối Mới Nhất</div>
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Ma Bam Khoi Moi Nhat</div>
                 <div id="statLatestHash" class="text-xs font-mono font-bold text-slate-700 truncate cursor-pointer hover:text-indigo-600 transition" onclick="copyLatestHash()">
                     0000000...
                 </div>
             </div>
 
             <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs h-[88px] flex flex-col justify-between">
-                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Trạng Thái Sổ Cái</div>
+                <div class="text-[10px] font-mono uppercase font-bold text-slate-400 tracking-wider">Trang Thai So Cai</div>
                 <div>
                     <span class="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md inline-block">
-                        BẢO MẬT BẤT BIẾN
+                        BAO MAT BAT BIEN
                     </span>
                 </div>
             </div>
@@ -115,7 +115,7 @@ public final class DashboardHtmlTemplate {
                 🔍
             </div>
             <input type="text" id="searchInput" oninput="handleSearch(this.value)"
-                   placeholder="Tìm kiếm trên voteChain theo số hiệu Block (#0, #1...), mã băm Hash, Tx Hash (0x...), hoặc MSSV cử tri..."
+                   placeholder="Tim kiem tren voteChain theo so hieu Block (#0, #1...), ma bam Hash, Tx Hash (0x...), hoac MSSV cu tri..."
                    class="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 shadow-2xs font-mono transition">
         </div>
  
@@ -125,13 +125,13 @@ public final class DashboardHtmlTemplate {
                 <div class="flex items-center gap-2">
                     <span class="text-base text-slate-500 font-bold">🔗</span>
                     <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        CHUỖI KHỐI SỔ CÁI VOTECHAIN (<span id="statBlocksStream">0</span> KHỐI ĐÃ KHÓA)
+                        CHUOI KHOI SO CAI VOTECHAIN (<span id="statBlocksStream">0</span> KHOI DA KHOA)
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">Nhấp vào khối để soi chi tiết</span>
+                    <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">Nhap vao khoi de soi chi tiet</span>
                     <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
-                        Đồng Bộ 100%
+                        Dong Bo 100%
                     </span>
                 </div>
             </div>
@@ -161,7 +161,7 @@ public final class DashboardHtmlTemplate {
                     </div>
                 </div>
                 <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
-                    <span class="text-[10px] font-mono text-slate-500 font-medium">Mạng voteChain &bull; Khối nối xích bất biến SHA-256</span>
+                    <span class="text-[10px] font-mono text-slate-500 font-medium">Mang voteChain &bull; Khoi noi xich bat bien SHA-256</span>
                 </div>
             </div>
 
@@ -182,7 +182,7 @@ public final class DashboardHtmlTemplate {
                     </div>
                 </div>
                 <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
-                    <span class="text-[10px] font-mono text-slate-500 font-medium">Mạng voteChain &bull; Bầu cử P2P phi tập trung &bull; Mỗi cử tri 1 phiếu</span>
+                    <span class="text-[10px] font-mono text-slate-500 font-medium">Mang voteChain &bull; Bau cu P2P phi tap trung &bull; Moi cu tri 1 phieu</span>
                 </div>
             </div>
         </section>
@@ -191,7 +191,7 @@ public final class DashboardHtmlTemplate {
 
     <!-- FOOTER ĐƠN GIẢN -->
     <footer class="max-w-7xl mx-auto w-full pt-6 pb-4 text-xs text-slate-400 font-medium text-center border-t border-slate-200/60 mt-4 font-mono">
-        Mạng voteChain &bull; Sổ Cái Chuỗi Khối Bất Biến &bull; Lập Trình Mạng HUTECH
+        Mang voteChain &bull; So Cai Chuoi Khoi Bat Bien &bull; Lap Trinh Mang HUTECH
     </footer>
 
     <!-- MODAL CHI TIẾT BLOCK & TRANSACTION (CHUẨN ETHERSCAN / SOLSCAN) -->
@@ -200,7 +200,7 @@ public final class DashboardHtmlTemplate {
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2.5">
                     <span id="modalTypeBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-900 text-white">BLOCK</span>
-                    <h3 id="modalTitle" class="text-sm font-extrabold text-slate-900">Chi Tiết</h3>
+                    <h3 id="modalTitle" class="text-sm font-extrabold text-slate-900">Chi Tiet</h3>
                 </div>
                 <button onclick="closeModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-lg font-bold cursor-pointer transition">&times;</button>
             </div>
@@ -209,20 +209,48 @@ public final class DashboardHtmlTemplate {
             </div>
             <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
                 <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">100% Cryptographically Verified</span>
-                <button onclick="closeModal()" class="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl cursor-pointer transition">Đóng</button>
+                <button onclick="closeModal()" class="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl cursor-pointer transition">Dong</button>
             </div>
         </div>
     </div>
 
     <!-- TOAST THÔNG BÁO COPIED -->
     <div id="copyToast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs font-mono font-semibold px-4 py-2 rounded-xl shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50">
-        Đã sao chép vào bộ nhớ tạm!
+        Da sao chep vao bo nho tam!
     </div>
 
     <!-- SCRIPT JAVASCRIPT -->
     <script>
         let currentChainData = null;
         let searchQuery = '';
+
+        function removeAccents(str) {
+            if (!str) return '';
+            let s = String(str);
+            // Chuẩn hóa tên bị lỗi ký tự mã hóa
+            s = s.replace(/Nguy[^\s]+[\s]+Ho[^\s]+[\s]+Nh[^\s]+/gi, 'Nguyen Hoang Nhat');
+            s = s.replace(/Nguy[^\s]+[\s]+Nh[^\s]+/gi, 'Nguyen Hoang Nhat');
+            // Gỡ bỏ dấu tiếng Việt
+            s = s.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+            s = s.replace(/[đĐ]/g, m => m === 'đ' ? 'd' : 'D');
+            s = s.replace(/\\?/g, '');
+            return s.trim();
+        }
+
+        function cleanCandidate(cand) {
+            if (!cand) return '';
+            const lower = String(cand).toLowerCase();
+            if (lower.includes('nhat') || lower.includes('nh?t') || (lower.includes('nguy') && (lower.includes('ho') || lower.includes('nh')))) {
+                return 'Nguyen Hoang Nhat';
+            }
+            if (lower.includes('luong') || lower.includes('lương') || lower.includes('trung')) {
+                return 'Nguyen Do Trung Luong';
+            }
+            if (lower.includes('minh') || lower.includes('quang')) {
+                return 'Le Quang Minh';
+            }
+            return removeAccents(cand);
+        }
 
         async function fetchStatus() {
             try {
@@ -311,7 +339,7 @@ public final class DashboardHtmlTemplate {
                         <div class="h-[82px] shrink-0 flex flex-col justify-between">
                             <div class="h-4 text-[9px] font-mono font-bold text-slate-400 flex items-center justify-between">
                                 <span>DATA PAYLOAD</span>
-                                <span class="text-[9px] text-slate-400 font-medium">${isGenesis ? 'Khởi tạo' : txCount + ' phiếu'}</span>
+                                <span class="text-[9px] text-slate-400 font-medium">${isGenesis ? 'Khoi tao' : txCount + ' phieu'}</span>
                             </div>
                             <div class="h-[62px] p-2 bg-slate-50 rounded-lg border border-slate-200/80 text-[10px] text-slate-800 overflow-y-auto leading-relaxed font-mono">
                                 ${formatContent(b.noiDung, isGenesis)}
@@ -340,20 +368,24 @@ public final class DashboardHtmlTemplate {
 
         function formatContent(noiDung, isGenesis) {
             if (isGenesis) {
-                return `<div class="text-slate-500 font-mono text-[10px] font-medium leading-relaxed">${escapeHtml(noiDung)}</div>`;
+                return `<div class="text-slate-500 font-mono text-[10px] font-medium leading-relaxed">${escapeHtml(removeAccents(noiDung))}</div>`;
             }
             const items = (noiDung || '').split(' | ');
             return items.map(item => {
-                let displayText = item;
-                const vStart = item.indexOf('Cử tri [');
+                let displayText = '';
+                let vStart = item.indexOf('Cử tri [');
+                if (vStart === -1) vStart = item.indexOf('Cu tri [');
                 if (vStart !== -1) {
                     const vEnd = item.indexOf(']', vStart);
                     if (vEnd !== -1) {
-                        const voterId = item.substring(vStart + 8, vEnd);
-                        displayText = voterId + ' - cử tri';
+                        const voterId = item.substring(item.indexOf('[', vStart) + 1, vEnd);
+                        displayText = removeAccents(voterId) + ' - cu tri';
                     }
                 }
-                return `<div class="py-1 font-mono text-[10px] text-slate-800 border-b border-slate-100 last:border-b-0 truncate font-semibold" title="${escapeHtml(item)}">
+                if (!displayText) {
+                    displayText = removeAccents(item);
+                }
+                return `<div class="py-1 font-mono text-[10px] text-slate-800 border-b border-slate-100 last:border-b-0 truncate font-semibold" title="${escapeHtml(removeAccents(item))}">
                     ${escapeHtml(displayText)}
                 </div>`;
             }).join('');
@@ -366,7 +398,7 @@ public final class DashboardHtmlTemplate {
 
             const latest = (blocks || []).slice().reverse().slice(0, 6);
             if (latest.length === 0) {
-                listCont.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 font-mono">Chưa có khối nào</div>`;
+                listCont.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 font-mono">Chua co khoi nao</div>`;
                 return;
             }
 
@@ -426,23 +458,25 @@ public final class DashboardHtmlTemplate {
                     const items = (b.noiDung || '').split(' | ');
                     items.forEach((item, idx) => {
                         let v = '', c = '';
-                        if (item.indexOf('Cử tri [') !== -1) {
-                            const vs = item.indexOf('Cử tri [') + 8;
-                            const ve = item.indexOf(']', vs);
-                            if (ve !== -1) v = item.substring(vs, ve);
+                        let vIdx = item.indexOf('Cử tri [');
+                        if (vIdx === -1) vIdx = item.indexOf('Cu tri [');
+                        if (vIdx !== -1) {
+                            const ve = item.indexOf(']', vIdx);
+                            if (ve !== -1) v = item.substring(item.indexOf('[', vIdx) + 1, ve);
                         }
-                        if (item.indexOf('bầu cho [') !== -1) {
-                            const cs = item.indexOf('bầu cho [') + 9;
-                            const ce = item.indexOf(']', cs);
-                            if (ce !== -1) c = item.substring(cs, ce);
+                        let cIdx = item.indexOf('bầu cho [');
+                        if (cIdx === -1) cIdx = item.indexOf('bau cho [');
+                        if (cIdx !== -1) {
+                            const ce = item.indexOf(']', cIdx);
+                            if (ce !== -1) c = item.substring(item.indexOf('[', cIdx) + 1, ce);
                         }
                         if (v || c) {
                             allTxs.push({
                                 txHash: '0x' + b.hash.substring(0, 8),
                                 blockIndex: b.index,
                                 status: 'Confirmed',
-                                voterId: v || 'Cử tri',
-                                candidate: c || 'Ứng viên',
+                                voterId: removeAccents(v) || 'Cu tri',
+                                candidate: cleanCandidate(c) || 'Ung vien',
                                 time: b.time
                             });
                         }
@@ -454,7 +488,7 @@ public final class DashboardHtmlTemplate {
 
             const latest = allTxs.slice(0, 6);
             if (latest.length === 0) {
-                listCont.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 font-mono">Chưa có giao dịch / phiếu bầu nào</div>`;
+                listCont.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 font-mono">Chua co giao dich / phieu bau nao</div>`;
                 return;
             }
 
@@ -472,16 +506,16 @@ public final class DashboardHtmlTemplate {
                                     <span class="text-[10px] text-slate-400 font-medium font-mono">${escapeHtml(tx.time)}</span>
                                 </div>
                                 <div class="text-[11px] text-slate-500 font-mono truncate mt-0.5 flex items-center gap-1.5">
-                                    <span>From: <span class="text-slate-800 font-semibold">[${escapeHtml(tx.voterId)}]</span></span>
+                                    <span>From: <span class="text-slate-800 font-semibold">[${escapeHtml(removeAccents(tx.voterId))}]</span></span>
                                     <span class="text-slate-300">➔</span>
-                                    <span>To: <span class="text-slate-800 font-semibold">[${escapeHtml(tx.candidate)}]</span></span>
+                                    <span>To: <span class="text-slate-800 font-semibold">[${escapeHtml(cleanCandidate(tx.candidate))}]</span></span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="text-right shrink-0">
                             <span class="px-2 py-0.5 rounded-md ${isPending ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'} font-mono text-[10px] font-bold">
-                                1 Phiếu
+                                1 Phieu
                             </span>
                             <div class="text-[9px] font-mono mt-1 ${isPending ? 'text-amber-600 font-bold' : 'text-slate-400'}">
                                 ${isPending ? 'In Mempool' : 'Block #' + tx.blockIndex}
@@ -502,7 +536,7 @@ public final class DashboardHtmlTemplate {
             const isGenesis = (index === 0);
 
             document.getElementById('modalTypeBadge').textContent = isGenesis ? 'GENESIS BLOCK' : 'BLOCK #' + index;
-            document.getElementById('modalTitle').textContent = 'Chi Tiết Khối #' + index;
+            document.getElementById('modalTitle').textContent = 'Chi Tiet Khoi #' + index;
 
             const html = `
                 <div class="space-y-2.5">
@@ -512,7 +546,7 @@ public final class DashboardHtmlTemplate {
                             <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-[11px] font-bold break-all flex-1">
                                 ${escapeHtml(b.hash)}
                             </div>
-                            <button onclick="copyText('${escapeHtml(b.hash)}')" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shrink-0 transition">Sao chép</button>
+                            <button onclick="copyText('${escapeHtml(b.hash)}')" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shrink-0 transition">Sao chep</button>
                         </div>
                     </div>
 
@@ -522,7 +556,7 @@ public final class DashboardHtmlTemplate {
                             <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-500 text-[11px] break-all flex-1">
                                 ${escapeHtml(b.preHash)}
                             </div>
-                            <button onclick="copyText('${escapeHtml(b.preHash)}')" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shrink-0 transition">Sao chép</button>
+                            <button onclick="copyText('${escapeHtml(b.preHash)}')" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shrink-0 transition">Sao chep</button>
                         </div>
                     </div>
 
@@ -534,7 +568,7 @@ public final class DashboardHtmlTemplate {
                             </div>
                         </div>
                         <div>
-                            <div class="text-[10px] text-slate-400 uppercase font-bold">Thời gian tạo</div>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">Thoi gian tao</div>
                             <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs mt-1">
                                 ${escapeHtml(b.time)}
                             </div>
@@ -542,7 +576,7 @@ public final class DashboardHtmlTemplate {
                     </div>
 
                     <div>
-                        <div class="text-[10px] text-slate-400 uppercase font-bold">Dữ liệu ghi vào Sổ Cái (Payload)</div>
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">Du lieu ghi vao So Cai (Payload)</div>
                         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs mt-1 leading-relaxed">
                             ${formatDetailPayload(b.noiDung, isGenesis)}
                         </div>
@@ -555,27 +589,31 @@ public final class DashboardHtmlTemplate {
         }
 
         function formatDetailPayload(noiDung, isGenesis) {
-            if (isGenesis) return `<span class="text-slate-500 font-medium">${escapeHtml(noiDung)}</span>`;
+            if (isGenesis) return `<span class="text-slate-500 font-medium">${escapeHtml(removeAccents(noiDung))}</span>`;
             const items = (noiDung || '').split(' | ');
             return items.map(item => {
                 let v = '', c = '';
-                if (item.indexOf('Cử tri [') !== -1) {
-                    const vs = item.indexOf('Cử tri [') + 8;
-                    const ve = item.indexOf(']', vs);
-                    if (ve !== -1) v = item.substring(vs, ve);
+                let vIdx = item.indexOf('Cử tri [');
+                if (vIdx === -1) vIdx = item.indexOf('Cu tri [');
+                if (vIdx !== -1) {
+                    const ve = item.indexOf(']', vIdx);
+                    if (ve !== -1) v = item.substring(item.indexOf('[', vIdx) + 1, ve);
                 }
-                if (item.indexOf('bầu cho [') !== -1) {
-                    const cs = item.indexOf('bầu cho [') + 9;
-                    const ce = item.indexOf(']', cs);
-                    if (ce !== -1) c = item.substring(cs, ce);
+                let cIdx = item.indexOf('bầu cho [');
+                if (cIdx === -1) cIdx = item.indexOf('bau cho [');
+                if (cIdx !== -1) {
+                    const ce = item.indexOf(']', cIdx);
+                    if (ce !== -1) c = item.substring(item.indexOf('[', cIdx) + 1, ce);
                 }
                 if (v) {
+                    const cleanV = removeAccents(v);
+                    const cleanC = cleanCandidate(c);
                     return `<div class="py-1 border-b border-slate-100 last:border-b-0 flex items-center justify-between text-xs font-mono">
-                        <span class="font-bold text-slate-800">${escapeHtml(v)} - cử tri</span>
-                        <span class="text-slate-500 font-medium">${c ? 'Bầu cho: <span class="text-indigo-600 font-bold">' + escapeHtml(c) + '</span>' : '1 phiếu'}</span>
+                        <span class="font-bold text-slate-800">${escapeHtml(cleanV)} - cu tri</span>
+                        <span class="text-slate-500 font-medium">${cleanC ? 'Bau cho: <span class="text-indigo-600 font-bold">' + escapeHtml(cleanC) + '</span>' : '1 phieu'}</span>
                     </div>`;
                 }
-                return `<div class="py-0.5">${escapeHtml(item)}</div>`;
+                return `<div class="py-0.5">${escapeHtml(removeAccents(item))}</div>`;
             }).join('');
         }
 
@@ -585,7 +623,10 @@ public final class DashboardHtmlTemplate {
             const tx = txs.find(t => t.txHash === txHash);
 
             document.getElementById('modalTypeBadge').textContent = 'TRANSACTION';
-            document.getElementById('modalTitle').textContent = 'Giao Dịch ' + txHash;
+            document.getElementById('modalTitle').textContent = 'Giao Dich ' + txHash;
+
+            const cleanVoter = tx ? removeAccents(tx.voterId) : '';
+            const cleanCand = tx ? cleanCandidate(tx.candidate) : '';
 
             const html = `
                 <div class="space-y-3">
@@ -595,19 +636,19 @@ public final class DashboardHtmlTemplate {
                             <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-bold flex-1">
                                 ${escapeHtml(txHash)}
                             </div>
-                            <button onclick="copyText('${escapeHtml(txHash)}')" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shrink-0 transition">Sao chép</button>
+                            <button onclick="copyText('${escapeHtml(txHash)}')" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold shrink-0 transition">Sao chep</button>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <div class="text-[10px] text-slate-400 uppercase font-bold">Trạng Thái</div>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">Trang Thai</div>
                             <div class="p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs rounded-lg mt-1">
-                                ${tx ? escapeHtml(tx.status) : 'Confirmed'} (Khối #${tx ? tx.blockIndex : ''})
+                                ${tx ? escapeHtml(tx.status) : 'Confirmed'} (Khoi #${tx ? tx.blockIndex : ''})
                             </div>
                         </div>
                         <div>
-                            <div class="text-[10px] text-slate-400 uppercase font-bold">Thời Gian</div>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">Thoi Gian</div>
                             <div class="p-2 bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg mt-1">
                                 ${tx ? escapeHtml(tx.time) : ''}
                             </div>
@@ -616,11 +657,11 @@ public final class DashboardHtmlTemplate {
 
                     ${tx ? `
                     <div>
-                        <div class="text-[10px] text-slate-400 uppercase font-bold">Người Gửi (From Voter) ➔ Người Nhận (To Candidate)</div>
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">Nguoi Gui (From Voter) ➔ Nguoi Nhan (To Candidate)</div>
                         <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 mt-1 flex items-center justify-between">
-                            <span class="font-bold">Cử tri MSSV: ${escapeHtml(tx.voterId)}</span>
+                            <span class="font-bold">Cu tri MSSV: ${escapeHtml(cleanVoter)}</span>
                             <span class="text-slate-400">➔</span>
-                            <span class="font-bold text-indigo-700">Ứng viên: ${escapeHtml(tx.candidate)}</span>
+                            <span class="font-bold text-indigo-700">Ung vien: ${escapeHtml(cleanCand)}</span>
                         </div>
                     </div>
                     ` : ''}
@@ -651,7 +692,11 @@ public final class DashboardHtmlTemplate {
             if (('#' + index) === q || String(index) === q) return true;
             if (b.hash.toLowerCase().indexOf(q) !== -1) return true;
             if (b.preHash.toLowerCase().indexOf(q) !== -1) return true;
-            if (b.noiDung && b.noiDung.toLowerCase().indexOf(q) !== -1) return true;
+            if (b.noiDung) {
+                const rawLower = b.noiDung.toLowerCase();
+                const unacc = removeAccents(b.noiDung).toLowerCase();
+                if (rawLower.indexOf(q) !== -1 || unacc.indexOf(q) !== -1) return true;
+            }
             return false;
         }
 
