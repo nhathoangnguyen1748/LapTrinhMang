@@ -52,16 +52,12 @@ public class WebLauncher {
             System.out.println(" Nhan Ctrl+C de dung chuong trinh.");
             System.out.println("=========================================================================");
 
-            // Keep process alive regardless of whether stdin is open or closed (EOF)
-            try {
-                int read = System.in.read();
-                if (read == -1) {
-                    // Stdin is closed (e.g. background execution or redirection)
-                    Thread.currentThread().join();
-                }
-            } catch (Exception ignored) {
-                while (true) {
-                    Thread.sleep(10000);
+            // Keep server running indefinitely until explicitly stopped
+            while (true) {
+                try {
+                    Thread.sleep(60_000);
+                } catch (InterruptedException e) {
+                    break;
                 }
             }
 
