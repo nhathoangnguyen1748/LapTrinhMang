@@ -189,6 +189,16 @@ public class NodeApiServer implements AutoCloseable {
         sb.append("\"storagePath\":\"").append(escapeJson(storage.getChainFile().toAbsolutePath().toString())).append("\",");
         sb.append("\"storageSize\":").append(storage.getChainFileSize()).append(",");
 
+        // Bổ sung thông tin động cơ đào PoW của Trung Lương
+        sb.append("\"miner\":{")
+          .append("\"author\":\"Nguyen Do Trung Luong (MSSV: 2380601305)\",")
+          .append("\"engine\":\"MultiThreadedMiner (Java 21 Virtual Threads)\",")
+          .append("\"workers\":").append(Runtime.getRuntime().availableProcessors()).append(",")
+          .append("\"isMining\":").append(isMining.get()).append(",")
+          .append("\"difficultyZeros\":").append(blockchain.getDifficultyLeadingZeros()).append(",")
+          .append("\"targetPrefix\":\"").append("0".repeat(blockchain.getDifficultyLeadingZeros())).append("\"")
+          .append("},");
+
         // Ứng cử viên & kết quả bầu cử
         sb.append("\"candidates\":[");
         int cIdx = 0;
@@ -435,7 +445,13 @@ public class NodeApiServer implements AutoCloseable {
                     + "\",\"time\":\"" + escapeJson(minedBlock.time())
                     + "\",\"preHash\":\"" + escapeJson(minedBlock.previousHash())
                     + "\",\"noiDung\":\"" + escapeJson(minedBlock.content())
-                    + "\",\"nonce\":" + minedBlock.nonce() + "}";
+                    + "\",\"nonce\":" + minedBlock.nonce()
+                    + ",\"durationMs\":" + duration
+                    + ",\"difficulty\":" + blockchain.getDifficultyLeadingZeros()
+                    + ",\"targetPrefix\":\"" + "0".repeat(blockchain.getDifficultyLeadingZeros()) + "\""
+                    + ",\"author\":\"Nguyen Do Trung Luong (MSSV: 2380601305)\""
+                    + ",\"engine\":\"MultiThreadedMiner (Java 21 Virtual Threads)\""
+                    + "}";
             sendResponse(exchange, 200, "application/json", json);
         } catch (Exception e) {
             logEvent("❌ Lỗi khai thác block: " + e.getMessage());
