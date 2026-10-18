@@ -5,24 +5,30 @@ import com.pow.simulator.crypto.HashUtil;
 import java.math.BigInteger;
 
 /**
- * Proof-of-Work target verification service.
- * Supports both bitwise leading-zero checks and Bitcoin-style BigInteger numerical target comparisons.
+ * Dịch vụ kiểm tra và thẩm định điều kiện mục tiêu Proof-of-Work (Target Verification Service).
+ * Hỗ trợ hai cơ chế thẩm định:
+ * 1. Bitwise leading zeros trên mảng byte: Thẩm định siêu tốc O(1), không cấp phát vùng nhớ heap,
+ *    dùng trực tiếp trong vòng lặp đào hàng triệu hash/giây của MultiThreadedMiner.
+ * 2. BigInteger 256-bit numerical comparison: So sánh giá trị số học của hash với ngưỡng Target,
+ *    tuân thủ đúng nguyên lý toán học của Satoshi Nakamoto trong mạng Bitcoin.
+ *
+ * Tác giả: Nguyễn Đỗ Trung Lương (MSSV: 2380601305)
  */
 public final class TargetMatcher {
 
     private static final BigInteger MAX_TARGET = BigInteger.ONE.shiftLeft(256).subtract(BigInteger.ONE);
 
     private TargetMatcher() {
-        // Prevent instantiation
+        // Chống khởi tạo instance (Utility class)
     }
 
     /**
-     * Checks if a 32-byte hash satisfies the required difficulty in leading zero bits.
-     * High-speed path directly inspecting byte array.
+     * Kiểm tra xem mảng byte hash (32 bytes SHA-256) có thỏa mãn số bit 0 dẫn đầu không.
+     * Cơ chế: Kiểm tra từng byte từ trái qua phải, đếm liên tục số bit 0 đầu tiên.
      *
-     * @param hashBytes      32-byte SHA-256 hash
-     * @param difficultyBits number of required consecutive leading zero bits
-     * @return true if hash has at least difficultyBits leading zero bits
+     * @param hashBytes      Mảng 32 bytes kết quả băm SHA-256
+     * @param difficultyBits Số lượng bit 0 yêu cầu liên tiếp ở đầu
+     * @return true nếu số bit 0 dẫn đầu >= difficultyBits
      */
     public static boolean matches(byte[] hashBytes, int difficultyBits) {
         if (difficultyBits <= 0) {
@@ -32,11 +38,11 @@ public final class TargetMatcher {
     }
 
     /**
-     * Checks if a 64-character hex hash satisfies the required difficulty in leading zero bits.
+     * Kiểm tra chuỗi hash dạng Hex (64 ký tự) có thỏa mãn độ khó bit 0 hay không.
      *
-     * @param hexHash        64-character SHA-256 hex string
-     * @param difficultyBits number of required consecutive leading zero bits
-     * @return true if hash has at least difficultyBits leading zero bits
+     * @param hexHash        Chuỗi 64 ký tự hex SHA-256
+     * @param difficultyBits Số lượng bit 0 yêu cầu liên tiếp ở đầu
+     * @return true nếu số bit 0 dẫn đầu >= difficultyBits
      */
     public static boolean matches(String hexHash, int difficultyBits) {
         if (difficultyBits <= 0) {
@@ -46,11 +52,11 @@ public final class TargetMatcher {
     }
 
     /**
-     * Computes the numerical 256-bit target value corresponding to a difficulty bit count.
-     * Target = 2^(256 - difficultyBits) - 1.
+     * Tính toán giá trị ngưỡng số học Target (256-bit BigInteger) tương ứng với số bit độ khó.
+     * Công thức toán học: Target = 2^(256 - difficultyBits) - 1.
      *
-     * @param difficultyBits number of leading zero bits
-     * @return BigInteger target threshold
+     * @param difficultyBits Số bit 0 yêu cầu
+     * @return Ngưỡng trần số học BigInteger
      */
     public static BigInteger computeTarget(int difficultyBits) {
         if (difficultyBits <= 0) {
@@ -63,11 +69,11 @@ public final class TargetMatcher {
     }
 
     /**
-     * Verifies if hash numerical value is strictly below the target threshold.
+     * Xác thực giá trị số học của Hash xem có nhỏ hơn hoặc bằng ngưỡng Target không (Hash <= Target).
      *
-     * @param hashBytes 32-byte hash
-     * @param target    256-bit target threshold
-     * @return true if numerical value < target
+     * @param hashBytes Mảng 32 bytes của Hash
+     * @param target    Ngưỡng số học 256-bit
+     * @return true nếu giá trị số học của hash hợp lệ
      */
     public static boolean matchesTarget(byte[] hashBytes, BigInteger target) {
         BigInteger hashValue = new BigInteger(1, hashBytes);
@@ -75,10 +81,10 @@ public final class TargetMatcher {
     }
 
     /**
-     * Generates a human-readable representation of the required target prefix.
+     * Trả về mô tả trực quan ngắn gọn về độ khó mục tiêu (ví dụ: "16 bits (~4 hex zeros)").
      *
-     * @param difficultyBits target bits
-     * @return description such as "16 bits (~4 hex zeros)"
+     * @param difficultyBits Số bit độ khó
+     * @return Chuỗi mô tả trực quan
      */
     public static String getDifficultyDescription(int difficultyBits) {
         int hexZeros = difficultyBits / 4;
@@ -88,5 +94,20 @@ public final class TargetMatcher {
         } else {
             return String.format("%d bits (~%d hex zeros + %d bit mask)", difficultyBits, hexZeros, remBits);
         }
+    }
+
+    /**
+     * Trả về chuỗi mặt nạ nhị phân (Binary Target Mask) thể hiện trực quan điều kiện PoW.
+     * Ví dụ: 8 bits -> "00000000... (8 leading zero bits required)".
+     *
+     * @param difficultyBits Số bit 0 yêu cầu
+     * @return Chuỗi biểu diễn mặt nạ nhị phân
+     */
+    public static String getBinaryTargetMask(int difficultyBits) {
+        if (difficultyBits <= 0) {
+            return "NO_RESTRICTION (0 bits)";
+        }
+        int clampedBits = Math.clamp(difficultyBits, 1, 256);
+        return "0".repeat(clampedBits) + "... (" + clampedBits + " leading zero bits required)";
     }
 }
