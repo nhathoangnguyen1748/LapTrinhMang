@@ -61,11 +61,9 @@ public class MultiThreadedMiner implements MiningService {
         AtomicReference<WinningNonce> solution = new AtomicReference<>(null);
 
         // Precompute static header segments to minimize string allocations in tight mining loop
-        String headerPrefix = templateBlock.index() + ":"
+        String headerPrefix = templateBlock.previousHash() + ":"
                 + templateBlock.timestamp() + ":"
-                + templateBlock.previousHash() + ":"
-                + templateBlock.merkleRoot() + ":";
-        String headerSuffix = ":" + templateBlock.difficultyBits();
+                + templateBlock.content() + ":";
 
         int targetDifficulty = templateBlock.difficultyBits();
 
@@ -94,7 +92,7 @@ public class MultiThreadedMiner implements MiningService {
                                     break;
                                 }
 
-                                String header = headerPrefix + nonce + headerSuffix;
+                                String header = headerPrefix + nonce;
                                 byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
                                 byte[] hashBytes = HashUtil.sha256(headerBytes);
 
