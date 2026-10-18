@@ -32,11 +32,11 @@ public class Blockchain {
     }
 
     public static Blockchain withDefaultGenesis(int initialDifficultyBits) {
-        return withDefaultGenesis();
+        return new Blockchain(Block.createGenesisBlock(initialDifficultyBits));
     }
 
     public static Blockchain withDefaultGenesis(int initialDifficultyBits, long timestamp) {
-        return new Blockchain(Block.createGenesisBlock(timestamp));
+        return new Blockchain(Block.createGenesisBlock(initialDifficultyBits, timestamp));
     }
 
     public synchronized void addBlock(Block block) {
@@ -187,7 +187,7 @@ public class Blockchain {
                             String h = Block.calculateHash(previousHash, timestamp, content, n);
                             if (h.startsWith(targetPrefix)) {
                                 if (solved.compareAndSet(false, true)) {
-                                    resultBlock.set(new Block(h, timestamp, previousHash, content, n));
+                                    resultBlock.set(new Block(h, timestamp, previousHash, content, n, chain.size(), difficultyLeadingZeros * 4));
                                 }
                                 break;
                             }
@@ -209,7 +209,7 @@ public class Blockchain {
             while (true) {
                 String h = Block.calculateHash(previousHash, timestamp, content, n);
                 if (h.startsWith(targetPrefix)) {
-                    minedBlock = new Block(h, timestamp, previousHash, content, n);
+                    minedBlock = new Block(h, timestamp, previousHash, content, n, chain.size(), difficultyLeadingZeros * 4);
                     break;
                 }
                 n++;
@@ -403,7 +403,19 @@ public class Blockchain {
     }
 
     public synchronized double getBalance(String address) {
-        return 0.0;
+        if (address == null || address.isBlank()) return 0.0;
+        double balance = 0.0;
+        for (Block block : chain) {
+            for (Transaction tx : block.transactions()) {
+                if (address.equalsIgnoreCase(tx.recipient())) {
+                    balance += tx.amount();
+                }
+                if (address.equalsIgnoreCase(tx.sender())) {
+                    balance -= tx.amount();
+                }
+            }
+        }
+        return balance;
     }
 
     public int getDifficultyLeadingZeros() {

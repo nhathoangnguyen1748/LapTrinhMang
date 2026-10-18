@@ -56,7 +56,15 @@ public final class BlockchainValidator {
                     "Genesis previousHash must be 64 zeros, found: " + genesis.previousHash(), logs);
         }
 
-        String computedGenesisHash = Block.calculateHash(genesis.previousHash(), genesis.timestamp(), genesis.content(), genesis.nonce());
+        if (!genesis.transactions().isEmpty()) {
+            String computedGenesisMerkle = MerkleTree.calculateRoot(genesis.transactions());
+            if (!computedGenesisMerkle.equals(genesis.merkleRoot())) {
+                return ValidationResult.invalid(0,
+                        "Genesis Merkle root tampered: expected " + computedGenesisMerkle + ", got " + genesis.merkleRoot(), logs);
+            }
+        }
+
+        String computedGenesisHash = genesis.calculateHash(genesis.nonce());
         if (!computedGenesisHash.equals(genesis.hash())) {
             return ValidationResult.invalid(0,
                     "Genesis block hash mismatch: stored " + genesis.hash() + " != calculated " + computedGenesisHash, logs);
@@ -90,8 +98,18 @@ public final class BlockchainValidator {
                                 curr.previousHash(), prev.hash()), logs);
             }
 
-            // D. Cryptographic Block Hash recalculation (detects altered content/headers/nonces)
-            String recalculatedHash = Block.calculateHash(curr.previousHash(), curr.timestamp(), curr.content(), curr.nonce());
+            // D. Merkle Root integrity (detects altered transactions/payload)
+            if (!curr.transactions().isEmpty()) {
+                String computedMerkleRoot = MerkleTree.calculateRoot(curr.transactions());
+                if (!computedMerkleRoot.equals(curr.merkleRoot())) {
+                    return ValidationResult.invalid(i,
+                            String.format("Transaction payload tampered! Stored MerkleRoot (%s) does not match actual transactions root (%s)",
+                                    curr.merkleRoot(), computedMerkleRoot), logs);
+                }
+            }
+
+            // E. Cryptographic Header Hash recalculation (detects altered headers/nonces)
+            String recalculatedHash = curr.calculateHash(curr.nonce());
             if (!recalculatedHash.equals(curr.hash())) {
                 return ValidationResult.invalid(i,
                         String.format("Block hash tampered! Stored hash (%s) does not match recalculated hash (%s)",
