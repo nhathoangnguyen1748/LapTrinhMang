@@ -344,8 +344,17 @@ public final class DashboardHtmlTemplate {
             }
             const items = (noiDung || '').split(' | ');
             return items.map(item => {
-                return `<div class="py-0.5 font-mono text-[10px] text-slate-800 border-b border-slate-100 last:border-b-0 truncate">
-                    ${escapeHtml(item)}
+                let displayText = item;
+                const vStart = item.indexOf('Cử tri [');
+                if (vStart !== -1) {
+                    const vEnd = item.indexOf(']', vStart);
+                    if (vEnd !== -1) {
+                        const voterId = item.substring(vStart + 8, vEnd);
+                        displayText = voterId + ' - cử tri';
+                    }
+                }
+                return `<div class="py-1 font-mono text-[10px] text-slate-800 border-b border-slate-100 last:border-b-0 truncate font-semibold" title="${escapeHtml(item)}">
+                    ${escapeHtml(displayText)}
                 </div>`;
             }).join('');
         }
@@ -534,8 +543,8 @@ public final class DashboardHtmlTemplate {
 
                     <div>
                         <div class="text-[10px] text-slate-400 uppercase font-bold">Dữ liệu ghi vào Sổ Cái (Payload)</div>
-                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs mt-1 leading-relaxed whitespace-pre-wrap">
-                            ${escapeHtml(b.noiDung)}
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs mt-1 leading-relaxed">
+                            ${formatDetailPayload(b.noiDung, isGenesis)}
                         </div>
                     </div>
                 </div>
@@ -543,6 +552,31 @@ public final class DashboardHtmlTemplate {
 
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function formatDetailPayload(noiDung, isGenesis) {
+            if (isGenesis) return `<span class="text-slate-500 font-medium">${escapeHtml(noiDung)}</span>`;
+            const items = (noiDung || '').split(' | ');
+            return items.map(item => {
+                let v = '', c = '';
+                if (item.indexOf('Cử tri [') !== -1) {
+                    const vs = item.indexOf('Cử tri [') + 8;
+                    const ve = item.indexOf(']', vs);
+                    if (ve !== -1) v = item.substring(vs, ve);
+                }
+                if (item.indexOf('bầu cho [') !== -1) {
+                    const cs = item.indexOf('bầu cho [') + 9;
+                    const ce = item.indexOf(']', cs);
+                    if (ce !== -1) c = item.substring(cs, ce);
+                }
+                if (v) {
+                    return `<div class="py-1 border-b border-slate-100 last:border-b-0 flex items-center justify-between text-xs font-mono">
+                        <span class="font-bold text-slate-800">${escapeHtml(v)} - cử tri</span>
+                        <span class="text-slate-500 font-medium">${c ? 'Bầu cho: <span class="text-indigo-600 font-bold">' + escapeHtml(c) + '</span>' : '1 phiếu'}</span>
+                    </div>`;
+                }
+                return `<div class="py-0.5">${escapeHtml(item)}</div>`;
+            }).join('');
         }
 
         function showTxDetail(txHash) {
