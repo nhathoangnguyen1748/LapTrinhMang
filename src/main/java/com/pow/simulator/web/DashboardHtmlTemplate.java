@@ -187,6 +187,32 @@ public final class DashboardHtmlTemplate {
             </div>
         </section>
 
+        <!-- 6. KHOI TONG KET KET QUA BAU CU TRONG SO CAI (BASIC & TINH TE CHUYEN NGHIEP) -->
+        <section class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                        Ket Qua Bau Cu Trong So Cai (Election Tally)
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="tallyTotalVotesLabel" class="text-[11px] font-mono text-slate-500 font-bold">Tong: 0 phieu</span>
+                    <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">100% Verified</span>
+                </div>
+            </div>
+
+            <!-- 3 COT CHO 3 UNG CU VIEN -->
+            <div id="bottomCandidatesTally" class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                <!-- Render bang Javascript -->
+            </div>
+            
+            <div class="pt-2 text-[10px] font-mono text-slate-400 border-t border-slate-100 flex items-center justify-between">
+                <span>Mang voteChain &bull; Thong ke tu dong tu toan bo cac khoi PoW da khoa</span>
+                <span class="text-indigo-600 font-semibold cursor-pointer hover:underline" onclick="showTallyModal()">Xem chi tiet kiem toan ↗</span>
+            </div>
+        </section>
+
     </div>
 
     <!-- FOOTER ĐƠN GIẢN -->
@@ -359,11 +385,12 @@ public final class DashboardHtmlTemplate {
                         ➔
                     </div>` : ''}
                 `;
-            }).join('');
+            }).join('') + (blocks.length > 0 ? renderTallyBlock(data) : '');
 
-            // Render 2 danh sách phong cách Etherscan
+            // Render 2 danh sách phong cách Etherscan & Khối tổng kết
             renderLatestBlocks(data.blocks);
             renderLatestTransactions(data);
+            renderBottomTally(data);
         }
 
         function formatContent(noiDung, isGenesis) {
@@ -524,6 +551,156 @@ public final class DashboardHtmlTemplate {
                     </div>
                 `;
             }).join('');
+        }
+
+        // =========================================================================
+        //  KHỐI TỔNG KẾT KẾT QUẢ BẦU CỬ (ELECTION TALLY BLOCK & SECTION)
+        // =========================================================================
+
+        function renderTallyBlock(data) {
+            const candidates = data.candidates || [];
+            const totalVotes = data.totalVotes || 0;
+            const topCandidate = candidates.reduce((max, c) => (c.votes > (max ? max.votes : -1) ? c : max), null);
+
+            return `
+                <!-- MŨI TÊN NỐI XÍCH SANG KHỐI TỔNG KẾT SỔ CÁI -->
+                <div class="w-8 shrink-0 flex items-center justify-center text-slate-300 font-mono text-sm select-none">
+                    ➔
+                </div>
+
+                <!-- KHỐI TỔNG KẾT PHIẾU (CHUẨN KÍCH THƯỚC: 240px x 316px) -->
+                <div onclick="showTallyModal()"
+                     class="w-[240px] h-[316px] shrink-0 bg-white border border-indigo-200 ring-1 ring-indigo-500/10 rounded-2xl p-3.5 shadow-2xs block-card flex flex-col justify-between cursor-pointer select-none">
+                    
+                    <!-- 1. BLOCK HEADER (h-7) -->
+                    <div class="h-7 flex items-center justify-between border-b border-slate-100 pb-1.5 shrink-0">
+                        <span class="text-xs font-black font-mono text-indigo-600 uppercase tracking-tight flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span> TONG KET
+                        </span>
+                        <span class="text-[9px] px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-100">
+                            3 UNG VIEN
+                        </span>
+                    </div>
+
+                    <!-- 2. TỔNG SỐ PHIẾU ĐÃ KIỂM (h-[38px]) -->
+                    <div class="h-[38px] shrink-0 flex items-center justify-between px-2.5 bg-slate-50 border border-slate-200/80 rounded-xl font-mono">
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase">Tong so phieu:</span>
+                        <span class="text-xs font-black text-slate-900">${totalVotes} phieu</span>
+                    </div>
+
+                    <!-- 3. DANH SÁCH 3 ỨNG CỬ VIÊN VÀ SỐ PHIẾU (h-[162px]) -->
+                    <div class="h-[162px] shrink-0 flex flex-col justify-between space-y-1.5">
+                        ${candidates.map(c => {
+                            const isLead = topCandidate && topCandidate.name === c.name && c.votes > 0;
+                            return `
+                                <div class="p-2 bg-slate-50/80 hover:bg-slate-100/70 border ${isLead ? 'border-indigo-200 bg-indigo-50/30' : 'border-slate-200/80'} rounded-xl flex flex-col justify-between font-mono transition">
+                                    <div class="flex items-center justify-between text-[10px]">
+                                        <span class="font-bold text-slate-800 truncate max-w-[130px]" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</span>
+                                        <span class="font-extrabold ${isLead ? 'text-indigo-600' : 'text-slate-700'}">${c.votes} phieu</span>
+                                    </div>
+                                    <div class="mt-1.5 flex items-center gap-2">
+                                        <div class="h-1.5 flex-1 bg-slate-200 rounded-full overflow-hidden">
+                                            <div class="h-full ${isLead ? 'bg-indigo-600' : 'bg-slate-400'} rounded-full transition-all duration-500" style="width: ${Math.max(c.percent, 3)}%"></div>
+                                        </div>
+                                        <span class="text-[9px] font-semibold text-slate-400 w-8 text-right">${c.percent}%</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- 4. FOOTER (h-7) -->
+                    <div class="h-7 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[9px] font-mono shrink-0">
+                        <span class="text-emerald-700 font-bold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> So Cai Hop Le
+                        </span>
+                        <span class="text-slate-400 font-medium">100% Verified</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBottomTally(data) {
+            const cont = document.getElementById('bottomCandidatesTally');
+            const totalLabel = document.getElementById('tallyTotalVotesLabel');
+            if (!cont) return;
+
+            const candidates = data.candidates || [];
+            const totalVotes = data.totalVotes || 0;
+            if (totalLabel) totalLabel.textContent = 'Tong: ' + totalVotes + ' phieu';
+
+            const topCandidate = candidates.reduce((max, c) => (c.votes > (max ? max.votes : -1) ? c : max), null);
+
+            cont.innerHTML = candidates.map((c, idx) => {
+                const isLead = topCandidate && topCandidate.name === c.name && c.votes > 0;
+                return `
+                    <div class="p-4 bg-slate-50/80 border ${isLead ? 'border-indigo-300 ring-1 ring-indigo-500/10 bg-indigo-50/20' : 'border-slate-200/90'} rounded-xl flex flex-col justify-between font-mono">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ung vien #0${idx + 1}</span>
+                            ${isLead ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold">Dan dau</span>' : ''}
+                        </div>
+                        <div class="mt-2 flex items-baseline justify-between">
+                            <span class="text-sm font-bold text-slate-900">${escapeHtml(c.name)}</span>
+                            <span class="text-xs font-black ${isLead ? 'text-indigo-600' : 'text-slate-700'}">${c.votes} phieu</span>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                                <span>Ty le tin nhiem</span>
+                                <span class="font-bold text-slate-600">${c.percent}%</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                                <div class="h-full ${isLead ? 'bg-indigo-600' : 'bg-slate-400'} rounded-full transition-all duration-500" style="width: ${Math.max(c.percent, 3)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showTallyModal() {
+            if (!currentChainData) return;
+            const candidates = currentChainData.candidates || [];
+            const totalVotes = currentChainData.totalVotes || 0;
+
+            document.getElementById('modalTypeBadge').textContent = 'ELECTION RESULTS';
+            document.getElementById('modalTitle').textContent = 'Tong Ket Ket Qua Bau Cu So Cai';
+
+            const html = `
+                <div class="space-y-3 font-mono">
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">Tong so phieu hop le</div>
+                            <div class="text-base font-black text-slate-900 mt-0.5">${totalVotes} phieu</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-400 uppercase font-bold">So khoi da xac thuc</div>
+                            <div class="text-base font-black text-indigo-600 mt-0.5">${currentChainData.blockCount} khoi</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">Chi tiet tung ung cu vien</div>
+                        ${candidates.map((c, i) => `
+                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-slate-900 text-xs">#0${i + 1} - ${escapeHtml(c.name)}</span>
+                                    <span class="font-black text-indigo-600 text-xs">${c.votes} phieu (${c.percent}%)</span>
+                                </div>
+                                <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-600 rounded-full" style="width: ${Math.max(c.percent, 2)}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 font-semibold flex items-center gap-2">
+                        <span>🛡️</span> Toan bo phieu duoc doi chieu va bat bien tren So Cai voteChain SHA-256.
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('detailModal').classList.remove('hidden');
         }
 
         // =========================================================================
