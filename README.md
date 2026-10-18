@@ -8,8 +8,8 @@ A modular, high-throughput, and cryptographically sound Proof-of-Work (PoW) bloc
 
 | MSSV | Họ và Tên | Vai trò | Công việc đã thực hiện | Issues & Pull Requests |
 | :---: | :--- | :---: | :--- | :---: |
-| **2380601549** | Nguyễn Hoàng Nhật | Nhóm trưởng | Thiết kế kiến trúc Blockchain & Tầng mạng P2P TCP Socket Cluster (`NetworkProtocol`, `NodeServer`, `PeerConnection`, `P2PNode`), Giao diện trực quan Web Dashboard & Next.js UI (`NodeApiServer`, `WebLauncher`), Quản lý Repo | Issue #1, Issue #7<br>PR #4, PR #8, PR #9 |
-| **2380601305** | Nguyễn Đỗ Trung Lương | Thành viên | Thuật toán đồng thuận PoW, công cụ đào đa luồng `MultiThreadedMiner` (Java 21 Virtual Threads) & `DifficultyAdjuster` (Epoch Retargeting) | Issue #2<br>PR #5 |
+| **2380601549** | Nguyễn Hoàng Nhật | Nhóm trưởng | Thiết kế kiến trúc Blockchain & Tầng mạng P2P TCP Socket Cluster (`NetworkProtocol`, `NodeServer`, `PeerConnection`, `P2PNode`), Giao diện trực quan Web Dashboard & Next.js UI (`NodeApiServer`, `WebLauncher`), Quản lý Repo | Issue #1, Issue #7<br>PR #4, PR #8, PR #9, PR #12 |
+| **2380601305** | Nguyễn Đỗ Trung Lương | Thành viên | Thuật toán đồng thuận PoW, công cụ đào đa luồng `MultiThreadedMiner` (Java 21 Virtual Threads) & `DifficultyAdjuster` (Epoch Retargeting), Bảng điều khiển PoW Mining Telemetry & Quản lý độ khó trên Web Dashboard, Bộ kiểm thử PoW Telemetry | Issue #2<br>PR #5, PR #13 |
 | **2380601342** | Lê Quang Minh | Thành viên | Kiểm toán sổ cái `BlockchainValidator`, mô phỏng tấn công giả mạo `AttackSimulator` & Toàn bộ bộ kiểm thử tự động JUnit 5 | Issue #3<br>PR #6 |
 
 ---
@@ -125,13 +125,17 @@ Hệ thống cung cấp giao diện trực quan hóa tương tác theo thời gi
 
 ---
 
-## 🧪 Test Suite Overview
+## 🧪 Test Suite Overview (38/38 Tests Passing 100%)
 
 Located in `src/test/java/com/pow/simulator`:
+- `MultiThreadedMinerTelemetryTest`: Verifies Java 21 Virtual Threads PoW engine, platform thread comparison, TargetMatcher bit/zero rules, real-time telemetry metrics (hashrate, worker count, duration), and live Mempool mining into the election ledger (Nguyễn Đỗ Trung Lương).
+- `ElectionBlockchainTest`: Verifies e-voting 5-attribute block standard (`hash`, `time`, `preHash`, `noiDung`, `nonce`), Mempool double-voting prevention, candidate tally calculations, tamper alarm detection, and disk persistence.
 - `BlockMiningTest`: Verifies mined block hashes satisfy target difficulty bits and Merkle calculations.
 - `DifficultyAdjustmentTest`: Verifies difficulty scaling (up/down), dampening caps ($0.25\times - 4.0\times$), and floor constraints.
 - `TamperDetectionTest`: Confirms detection of payload modifications, forged hashes, broken linkage, and temporal paradoxes.
 - `ConcurrencyTest`: Validates virtual thread cancellation, absence of deadlocks, and clean worker termination.
 - `NetworkProtocolTest`: Verifies 4-byte length-prefix stream framing and payload serialization.
 - `P2PClusterNetworkTest`: End-to-end integration test of 3-node P2P TCP network, gossip transaction broadcast, PoW block propagation, and late-joining node Nakamoto consensus sync.
+- `WalletAndStorageTest`: Verifies cryptographic keypair generation, digital signatures, and JSON ledger file persistence.
+
 
