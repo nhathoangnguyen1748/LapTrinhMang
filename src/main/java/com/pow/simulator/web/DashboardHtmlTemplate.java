@@ -385,7 +385,7 @@ public final class DashboardHtmlTemplate {
                         ➔
                     </div>` : ''}
                 `;
-            }).join('') + (blocks.length > 0 ? renderTallyBlock(data) : '');
+            }).join('');
 
             // Render 2 danh sách phong cách Etherscan & Khối tổng kết
             renderLatestBlocks(data.blocks);
@@ -554,71 +554,8 @@ public final class DashboardHtmlTemplate {
         }
 
         // =========================================================================
-        //  KHỐI TỔNG KẾT KẾT QUẢ BẦU CỬ (ELECTION TALLY BLOCK & SECTION)
+        //  KHỐI TỔNG KẾT KẾT QUẢ BẦU CỬ (ELECTION TALLY SECTION)
         // =========================================================================
-
-        function renderTallyBlock(data) {
-            const candidates = data.candidates || [];
-            const totalVotes = data.totalVotes || 0;
-            const topCandidate = candidates.reduce((max, c) => (c.votes > (max ? max.votes : -1) ? c : max), null);
-
-            return `
-                <!-- MŨI TÊN NỐI XÍCH SANG KHỐI TỔNG KẾT SỔ CÁI -->
-                <div class="w-8 shrink-0 flex items-center justify-center text-slate-300 font-mono text-sm select-none">
-                    ➔
-                </div>
-
-                <!-- KHỐI TỔNG KẾT PHIẾU (CHUẨN KÍCH THƯỚC: 240px x 316px) -->
-                <div onclick="showTallyModal()"
-                     class="w-[240px] h-[316px] shrink-0 bg-white border border-indigo-200 ring-1 ring-indigo-500/10 rounded-2xl p-3.5 shadow-2xs block-card flex flex-col justify-between cursor-pointer select-none">
-                    
-                    <!-- 1. BLOCK HEADER (h-7) -->
-                    <div class="h-7 flex items-center justify-between border-b border-slate-100 pb-1.5 shrink-0">
-                        <span class="text-xs font-black font-mono text-indigo-600 uppercase tracking-tight flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span> TONG KET
-                        </span>
-                        <span class="text-[9px] px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md font-mono font-bold border border-indigo-100">
-                            3 UNG VIEN
-                        </span>
-                    </div>
-
-                    <!-- 2. TỔNG SỐ PHIẾU ĐÃ KIỂM (h-[38px]) -->
-                    <div class="h-[38px] shrink-0 flex items-center justify-between px-2.5 bg-slate-50 border border-slate-200/80 rounded-xl font-mono">
-                        <span class="text-[10px] text-slate-400 font-semibold uppercase">Tong so phieu:</span>
-                        <span class="text-xs font-black text-slate-900">${totalVotes} phieu</span>
-                    </div>
-
-                    <!-- 3. DANH SÁCH 3 ỨNG CỬ VIÊN VÀ SỐ PHIẾU (h-[162px]) -->
-                    <div class="h-[162px] shrink-0 flex flex-col justify-between space-y-1.5">
-                        ${candidates.map(c => {
-                            const isLead = topCandidate && topCandidate.name === c.name && c.votes > 0;
-                            return `
-                                <div class="p-2 bg-slate-50/80 hover:bg-slate-100/70 border ${isLead ? 'border-indigo-200 bg-indigo-50/30' : 'border-slate-200/80'} rounded-xl flex flex-col justify-between font-mono transition">
-                                    <div class="flex items-center justify-between text-[10px]">
-                                        <span class="font-bold text-slate-800 truncate max-w-[130px]" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</span>
-                                        <span class="font-extrabold ${isLead ? 'text-indigo-600' : 'text-slate-700'}">${c.votes} phieu</span>
-                                    </div>
-                                    <div class="mt-1.5 flex items-center gap-2">
-                                        <div class="h-1.5 flex-1 bg-slate-200 rounded-full overflow-hidden">
-                                            <div class="h-full ${isLead ? 'bg-indigo-600' : 'bg-slate-400'} rounded-full transition-all duration-500" style="width: ${Math.max(c.percent, 3)}%"></div>
-                                        </div>
-                                        <span class="text-[9px] font-semibold text-slate-400 w-8 text-right">${c.percent}%</span>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-
-                    <!-- 4. FOOTER (h-7) -->
-                    <div class="h-7 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[9px] font-mono shrink-0">
-                        <span class="text-emerald-700 font-bold flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> So Cai Hop Le
-                        </span>
-                        <span class="text-slate-400 font-medium">100% Verified</span>
-                    </div>
-                </div>
-            `;
-        }
 
         function renderBottomTally(data) {
             const cont = document.getElementById('bottomCandidatesTally');
