@@ -8,18 +8,31 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Bitcoin-style dynamic difficulty adjustment engine.
- * Dynamically retargets Proof-of-Work difficulty every EPOCH_SIZE blocks based on
- * actual elapsed time versus expected block generation time, applying mathematical
- * dampening factors to prevent erratic difficulty swings.
+ * Động cơ tự động điều chỉnh độ khó Proof-of-Work theo chu kỳ Epochs (Dynamic Difficulty Retargeting).
+ * Mô phỏng thuật toán retargeting của mạng Bitcoin:
+ * Cứ sau mỗi chu kỳ EPOCH_SIZE (ví dụ 5 blocks), hệ thống sẽ so sánh:
+ *   - actualTimeMs: Thời gian thực tế các thợ đào hoàn thành epoch
+ *   - expectedTimeMs: Thời gian mong muốn của mạng lưới (targetBlockTimeMs * epochSize)
+ * Từ đó tính toán tỷ lệ rawRatio = expectedTime / actualTime:
+ *   - Nếu đào quá nhanh (actual < expected) -> Tăng độ khó (+bits).
+ *   - Nếu đào quá chậm (actual > expected) -> Giảm độ khó (-bits).
+ * Áp dụng hệ số giảm chấn toán học (Dampening Factor [0.25x - 4.0x]) để chống sốc độ khó.
+ *
+ * Tác giả: Nguyễn Đỗ Trung Lương (MSSV: 2380601305)
  */
 public class DifficultyAdjuster {
 
+    // Thời gian mục tiêu cho mỗi khối (mặc định 1.5 giây = 1500 ms)
     public static final long DEFAULT_TARGET_BLOCK_TIME_MS = 1500L;
+    // Chu kỳ số khối giữa các lần điều chỉnh độ khó
     public static final int DEFAULT_EPOCH_SIZE = 5;
+    // Hệ số giảm chấn tăng tối đa: 4.0x (tương đương +2 bits)
     public static final double MAX_ADJUSTMENT_FACTOR = 4.0;
+    // Hệ số giảm chấn giảm tối đa: 0.25x (tương đương -2 bits)
     public static final double MIN_ADJUSTMENT_FACTOR = 0.25;
+    // Sàn độ khó tối thiểu (4 bits = ít nhất nửa byte số 0)
     public static final int MIN_DIFFICULTY_BITS = 4;
+    // Trần độ khó tối đa trong mô phỏng (32 bits)
     public static final int MAX_DIFFICULTY_BITS = 32;
 
     private final long targetBlockTimeMs;
@@ -30,7 +43,7 @@ public class DifficultyAdjuster {
     private final int maxDifficultyBits;
 
     /**
-     * Default constructor using production-tuned simulation constants.
+     * Khởi tạo bộ điều chỉnh độ khó với tham số mặc định.
      */
     public DifficultyAdjuster() {
         this(DEFAULT_TARGET_BLOCK_TIME_MS, DEFAULT_EPOCH_SIZE,
@@ -39,7 +52,7 @@ public class DifficultyAdjuster {
     }
 
     /**
-     * Fully parameterized constructor for custom test scenarios.
+     * Constructor đầy đủ tham số phục vụ cấu hình linh hoạt và kiểm thử tự động.
      */
     public DifficultyAdjuster(
             long targetBlockTimeMs,
@@ -60,10 +73,10 @@ public class DifficultyAdjuster {
     }
 
     /**
-     * Determines whether the current chain tip constitutes an epoch adjustment boundary.
+     * Kiểm tra xem độ cao hiện tại của chuỗi có nằm trên ranh giới chu kỳ điều chỉnh (Epoch Boundary) hay không.
      *
-     * @param chain blockchain instance
-     * @return true if an epoch just completed
+     * @param chain Đối tượng sổ cái chuỗi khối
+     * @return true nếu vừa hoàn thành một chu kỳ Epoch
      */
     public boolean isEpochBoundary(Blockchain chain) {
         Objects.requireNonNull(chain, "chain must not be null");
@@ -71,10 +84,10 @@ public class DifficultyAdjuster {
     }
 
     /**
-     * Calculates the difficulty for the next block to be mined.
+     * Tính toán độ khó (số bit 0) cho khối tiếp theo cần khai thác.
      *
-     * @param chain current blockchain state
-     * @return difficulty in leading zero bits
+     * @param chain Trạng thái chuỗi khối hiện tại
+     * @return Số lượng bit 0 mục tiêu cho khối mới
      */
     public int getNextDifficulty(Blockchain chain) {
         Objects.requireNonNull(chain, "chain must not be null");
@@ -89,10 +102,10 @@ public class DifficultyAdjuster {
     }
 
     /**
-     * Evaluates the epoch performance and calculates detailed adjustment metrics.
+     * Đánh giá hiệu năng khai thác của Epoch vừa kết thúc và xuất báo cáo kiểm toán chi tiết.
      *
-     * @param chain current blockchain state
-     * @return EpochReport containing audit details of the adjustment
+     * @param chain Trạng thái sổ cái
+     * @return EpochReport chứa toàn bộ thông số đánh giá độ khó
      */
     public EpochReport evaluateAdjustment(Blockchain chain) {
         Objects.requireNonNull(chain, "chain must not be null");
@@ -116,20 +129,18 @@ public class DifficultyAdjuster {
         }
         long expectedTimeMs = targetBlockTimeMs * epochSize;
 
-        // Ratio > 1.0 means mined faster than expected -> increase difficulty
-        // Ratio < 1.0 means mined slower than expected -> decrease difficulty
+        // 1. Tỷ lệ tốc độ thô: rawRatio > 1 nghĩa là đào nhanh hơn dự kiến; rawRatio < 1 là đào chậm
         double rawRatio = (double) expectedTimeMs / (double) actualTimeMs;
 
-        // Apply Bitcoin-style dampening factor (e.g. capped between 0.25x and 4.0x)
+        // 2. Kẹp tỷ lệ trong khoảng giảm chấn [minAdjustmentFactor, maxAdjustmentFactor] (ví dụ: [0.25x, 4.0x])
         double clampedRatio = Math.clamp(rawRatio, minAdjustmentFactor, maxAdjustmentFactor);
 
         int currentDifficulty = latestBlock.difficultyBits();
 
-        // In binary PoW, difficulty is in bits (work doubles with each bit: 2^delta)
-        // deltaBits = round(log2(clampedRatio))
+        // 3. Quy đổi tỷ lệ sang số lượng bit thay đổi: deltaBits = round(log2(clampedRatio))
         int deltaBits = (int) Math.round(Math.log(clampedRatio) / Math.log(2.0));
 
-        // Ensure sensitivity if actual time diverges noticeably
+        // 4. Đảm bảo độ nhạy nếu thời gian thực tế lệch đáng kể khỏi kỳ vọng (+-20%)
         if (deltaBits == 0) {
             if (rawRatio >= 1.20) {
                 deltaBits = 1;
@@ -138,9 +149,10 @@ public class DifficultyAdjuster {
             }
         }
 
-        // Clamp delta to dampening bounds [-2, +2] corresponding to [0.25, 4.0]
+        // 5. Giới hạn biến động tối đa mỗi epoch là [-2 bits, +2 bits]
         deltaBits = Math.clamp(deltaBits, -2, 2);
 
+        // 6. Kẹp trong giới hạn an toàn minDifficultyBits và maxDifficultyBits
         int newDifficulty = Math.clamp(currentDifficulty + deltaBits, minDifficultyBits, maxDifficultyBits);
 
         String direction;
@@ -174,8 +186,24 @@ public class DifficultyAdjuster {
         return epochSize;
     }
 
+    public double getMaxAdjustmentFactor() {
+        return maxAdjustmentFactor;
+    }
+
+    public double getMinAdjustmentFactor() {
+        return minAdjustmentFactor;
+    }
+
+    public int getMinDifficultyBits() {
+        return minDifficultyBits;
+    }
+
+    public int getMaxDifficultyBits() {
+        return maxDifficultyBits;
+    }
+
     /**
-     * Immutable report detailing difficulty epoch calculations.
+     * Bản ghi chứa đầy đủ thông số kiểm toán sự kiện điều chỉnh độ khó.
      */
     public record EpochReport(
             int epochNumber,

@@ -56,10 +56,12 @@ public final class BlockchainValidator {
                     "Genesis previousHash must be 64 zeros, found: " + genesis.previousHash(), logs);
         }
 
-        String computedGenesisMerkle = MerkleTree.calculateRoot(genesis.transactions());
-        if (!computedGenesisMerkle.equals(genesis.merkleRoot())) {
-            return ValidationResult.invalid(0,
-                    "Genesis Merkle root tampered: expected " + computedGenesisMerkle + ", got " + genesis.merkleRoot(), logs);
+        if (!genesis.transactions().isEmpty()) {
+            String computedGenesisMerkle = MerkleTree.calculateRoot(genesis.transactions());
+            if (!computedGenesisMerkle.equals(genesis.merkleRoot())) {
+                return ValidationResult.invalid(0,
+                        "Genesis Merkle root tampered: expected " + computedGenesisMerkle + ", got " + genesis.merkleRoot(), logs);
+            }
         }
 
         String computedGenesisHash = genesis.calculateHash(genesis.nonce());
@@ -97,11 +99,13 @@ public final class BlockchainValidator {
             }
 
             // D. Merkle Root integrity (detects altered transactions/payload)
-            String computedMerkleRoot = MerkleTree.calculateRoot(curr.transactions());
-            if (!computedMerkleRoot.equals(curr.merkleRoot())) {
-                return ValidationResult.invalid(i,
-                        String.format("Transaction payload tampered! Stored MerkleRoot (%s) does not match actual transactions root (%s)",
-                                curr.merkleRoot(), computedMerkleRoot), logs);
+            if (!curr.transactions().isEmpty()) {
+                String computedMerkleRoot = MerkleTree.calculateRoot(curr.transactions());
+                if (!computedMerkleRoot.equals(curr.merkleRoot())) {
+                    return ValidationResult.invalid(i,
+                            String.format("Transaction payload tampered! Stored MerkleRoot (%s) does not match actual transactions root (%s)",
+                                    curr.merkleRoot(), computedMerkleRoot), logs);
+                }
             }
 
             // E. Cryptographic Header Hash recalculation (detects altered headers/nonces)
