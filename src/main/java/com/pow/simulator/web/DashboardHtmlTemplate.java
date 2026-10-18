@@ -9,7 +9,10 @@ public final class DashboardHtmlTemplate {
     private DashboardHtmlTemplate() {}
 
     public static String getHtml() {
-        return """
+        return new StringBuilder(HTML_BODY).append(HTML_SCRIPTS).toString();
+    }
+
+    private static final String HTML_BODY = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -64,7 +67,7 @@ public final class DashboardHtmlTemplate {
             <div class="flex items-center gap-4 text-xs font-mono text-slate-500">
                 <div class="text-right hidden sm:block">
                     <div class="text-[10px] text-slate-400 uppercase font-semibold">Ten mang / Giao thuc</div>
-                    <div class="font-bold text-slate-800 text-[11px]">voteChain (PoW 7 Zeros)</div>
+                    <div id="networkProtocolLabel" class="font-bold text-slate-800 text-[11px]">voteChain (PoW 3 Zeros)</div>
                 </div>
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
                 <div class="text-right">
@@ -118,6 +121,113 @@ public final class DashboardHtmlTemplate {
                    placeholder="Tim kiem tren voteChain theo so hieu Block (#0, #1...), ma bam Hash, Tx Hash (0x...), hoac MSSV cu tri..."
                    class="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 shadow-2xs font-mono transition">
         </div>
+
+        <!-- 3.5. BẢNG ĐIỀU KHIỂN KHAI THÁC PoW & ĐO LƯỜNG THỜI GIAN THỰC (PoW MINING & TELEMETRY CONSOLE) -->
+        <!-- Module đồng thuận phân tán phát triển bởi Nguyễn Đỗ Trung Lương (MSSV: 2380601305) -->
+        <section class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-slate-100 gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-200 flex items-center justify-center text-xl font-bold shrink-0">
+                        ⛏️
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                Bang Dieu Khien Khai Thac PoW &amp; Do Luong Vi Mo
+                            </h2>
+                            <span class="text-[9px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full font-bold">
+                                Java 21 Loom
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 font-mono">
+                            Dong thuan PoW SHA-256 da luong &bull; Phu trach: <strong class="text-slate-800">Nguyen Do Trung Luong (MSSV: 2380601305)</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button id="btnManualMine" onclick="triggerManualMine()"
+                            class="px-4 py-2 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-mono font-bold rounded-xl flex items-center gap-2 shadow-xs transition cursor-pointer">
+                        <span id="mineIcon">⛏️</span>
+                        <span id="mineBtnText">Khai Thac Khoi PoW (Mine Block)</span>
+                    </button>
+                    <button onclick="triggerTamperTest()"
+                            class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-mono font-bold rounded-xl transition cursor-pointer"
+                            title="Thu nghiem can thiep sua doi khoi de kiem tra co che canh bao gian lan">
+                        ⚠️ Test Gian Lan
+                    </button>
+                    <button onclick="triggerResetChain()"
+                            class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-mono font-bold rounded-xl transition cursor-pointer"
+                            title="Khoi dong lai So cai va Mempool ve trang thai sach ban dau">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- BĂNG THÔNG SỐ ĐO LƯỜNG TELEMETRY VÀ BỘ CHỌN ĐỘ KHÓ -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <!-- 1. Trạng thái Miner -->
+                <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3 flex flex-col justify-between">
+                    <span class="text-[9px] font-mono uppercase font-bold text-slate-400 tracking-wider">Trang Thai Miner</span>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span id="minerStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="minerStatusText" class="text-xs font-mono font-black text-emerald-700">SAN SANG</span>
+                    </div>
+                    <span class="text-[9px] font-mono text-slate-400 mt-1">MultiThreadedMiner</span>
+                </div>
+
+                <!-- 2. Virtual Threads Workers -->
+                <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3 flex flex-col justify-between">
+                    <span class="text-[9px] font-mono uppercase font-bold text-slate-400 tracking-wider">Luong Song Song</span>
+                    <div class="text-base font-mono font-black text-slate-900 mt-0.5 flex items-baseline gap-1">
+                        <span id="minerWorkers">--</span>
+                        <span class="text-[10px] text-slate-400 font-normal">threads</span>
+                    </div>
+                    <span class="text-[9px] font-mono text-indigo-600 font-semibold mt-1">Project Loom Virtual</span>
+                </div>
+
+                <!-- 3. Độ khó & Mục tiêu băm -->
+                <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3 flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-mono uppercase font-bold text-slate-400 tracking-wider">Do Kho PoW</span>
+                        <span id="minerTargetPrefix" class="text-[9px] font-mono text-amber-700 font-bold">000...</span>
+                    </div>
+                    <div class="mt-1 flex items-center gap-1.5">
+                        <select id="diffSelect" onchange="changeDifficulty(this.value)"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-slate-900 cursor-pointer">
+                            <option value="1">1 So 0 (Rat nhanh)</option>
+                            <option value="2">2 So 0 (Nhanh)</option>
+                            <option value="3" selected>3 So 0 (Chuan demo)</option>
+                            <option value="4">4 So 0 (Thu thach)</option>
+                            <option value="5">5 So 0 (Nang cao)</option>
+                            <option value="6">6 So 0 (Cuc cao)</option>
+                        </select>
+                    </div>
+                    <span class="text-[9px] font-mono text-slate-400 mt-1">Target leading zeros</span>
+                </div>
+
+                <!-- 4. Tốc độ băm (Hashrate) -->
+                <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3 flex flex-col justify-between">
+                    <span class="text-[9px] font-mono uppercase font-bold text-slate-400 tracking-wider">Toc Do Bam Uoc Tinh</span>
+                    <div class="text-base font-mono font-black text-slate-900 mt-0.5 flex items-baseline gap-1">
+                        <span id="minerHashrate">--</span>
+                        <span class="text-[10px] text-slate-400 font-normal">kH/s</span>
+                    </div>
+                    <span class="text-[9px] font-mono text-slate-400 mt-1">SHA-256 multi-core</span>
+                </div>
+
+                <!-- 5. Khối vừa đào & Nonce -->
+                <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3 flex flex-col justify-between col-span-2 md:col-span-1">
+                    <span class="text-[9px] font-mono uppercase font-bold text-slate-400 tracking-wider">Khoi Gan Nhat</span>
+                    <div class="text-xs font-mono font-bold text-slate-800 mt-1 truncate">
+                        Nonce: <span id="minerLastNonce" class="text-amber-700 font-black">--</span>
+                    </div>
+                    <span class="text-[9px] font-mono text-slate-500 mt-1">
+                        Thoi gian: <span id="minerLastDuration" class="font-bold text-slate-700">--</span> ms
+                    </span>
+                </div>
+            </div>
+        </section>
  
         <!-- 4. SỔ CÁI CHUỖI KHỐI (100% CÁC KHỐI ĐỒNG BỘ KÍCH THƯỚC) -->
         <main class="bg-white border border-slate-200/90 rounded-2xl p-5 md:p-6 shadow-2xs space-y-4">
@@ -244,11 +354,107 @@ public final class DashboardHtmlTemplate {
     <div id="copyToast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs font-mono font-semibold px-4 py-2 rounded-xl shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50">
         Da sao chep vao bo nho tam!
     </div>
+""";
 
+    private static final String HTML_SCRIPTS = """
     <!-- SCRIPT JAVASCRIPT -->
     <script>
         let currentChainData = null;
         let searchQuery = '';
+        let lastMiningDuration = null;
+        let lastMiningNonce = null;
+
+        // =========================================================================
+        //  BỘ ĐIỀU KHIỂN & ĐO LƯỜNG PoW MINER (NGUYỄN ĐỖ TRUNG LƯƠNG - 2380601305)
+        // =========================================================================
+
+        async function triggerManualMine() {
+            const btn = document.getElementById('btnManualMine');
+            const icon = document.getElementById('mineIcon');
+            const text = document.getElementById('mineBtnText');
+            if (btn) btn.disabled = true;
+            if (icon) icon.textContent = '⏳';
+            if (text) text.textContent = 'Dang băm khối PoW đa luồng...';
+
+            try {
+                const res = await fetch('/api/election/mine', { method: 'POST' });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    lastMiningDuration = result.durationMs;
+                    lastMiningNonce = result.nonce;
+                    const khs = result.durationMs > 0 ? ((result.nonce / (result.durationMs / 1000.0)) / 1000.0).toFixed(2) : '--';
+                    copyToastShow(`⛏️ Đào thành công Khối mới! Nonce: ${result.nonce} (${result.durationMs} ms | ${khs} kH/s)`);
+                    fetchStatus();
+                } else {
+                    alert(result.error || 'Không thể khai thác khối!');
+                }
+            } catch (e) {
+                console.error("Lỗi khai thác:", e);
+                alert('Lỗi kết nối đến NodeApiServer khi khai thác khối!');
+            } finally {
+                if (btn) btn.disabled = false;
+                if (icon) icon.textContent = '⛏️';
+                if (text) text.textContent = 'Khai Thac Khoi PoW (Mine Block)';
+            }
+        }
+
+        async function changeDifficulty(newDiff) {
+            try {
+                const res = await fetch('/api/election/difficulty', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ difficulty: parseInt(newDiff) })
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    copyToastShow(`⚙️ Đã cập nhật độ khó PoW thành: ${result.difficulty} số 0 (${result.targetPrefix}...)!`);
+                    fetchStatus();
+                }
+            } catch (e) {
+                console.error("Lỗi đổi độ khó:", e);
+            }
+        }
+
+        async function triggerTamperTest() {
+            if (!confirm('Bạn có chắc muốn can thiệp sửa đổi khối để kiểm chứng thuật toán cảnh báo gian lận SHA-256?')) return;
+            try {
+                const res = await fetch('/api/election/tamper', { method: 'POST' });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    copyToastShow('🚨 Đã can thiệp dữ liệu khối! Sổ cái lập tức chuyển sang trạng thái cảnh báo đỏ.');
+                    fetchStatus();
+                } else {
+                    alert(result.error || 'Lỗi khi thử nghiệm can thiệp!');
+                }
+            } catch (e) {
+                console.error("Lỗi tamper:", e);
+            }
+        }
+
+        async function triggerResetChain() {
+            if (!confirm('Bạn có chắc muốn khởi động lại Sổ cái và Mempool về trạng thái ban đầu?')) return;
+            try {
+                const res = await fetch('/api/election/reset', { method: 'POST' });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    copyToastShow('🔄 Đã làm mới Sổ cái và Mempool về khối Genesis ban đầu!');
+                    lastMiningDuration = null;
+                    lastMiningNonce = null;
+                    fetchStatus();
+                }
+            } catch (e) {
+                console.error("Lỗi reset:", e);
+            }
+        }
+
+        function copyToastShow(msg) {
+            const toast = document.getElementById('copyToast');
+            if (toast) {
+                toast.textContent = msg;
+                toast.classList.remove('opacity-0');
+                setTimeout(() => toast.classList.add('opacity-0'), 3500);
+            }
+        }
 
         function removeAccents(str) {
             if (!str) return '';
@@ -304,6 +510,64 @@ public final class DashboardHtmlTemplate {
                 const shortLast = last.hash.length > 18 ? (last.hash.substring(0, 10) + '...' + last.hash.substring(last.hash.length - 6)) : last.hash;
                 latestHashEl.textContent = shortLast;
                 latestHashEl.title = 'Nhấp để sao chép: ' + last.hash;
+            }
+
+            // Cập nhật nhãn giao thức mạng với số số 0 thực tế
+            const protoLabel = document.getElementById('networkProtocolLabel');
+            if (protoLabel && data.difficulty) {
+                protoLabel.textContent = 'voteChain (PoW ' + data.difficulty + ' Zeros)';
+            }
+
+            // Cập nhật thông số đo lường PoW Telemetry Console (Phụ trách: Nguyễn Đỗ Trung Lương)
+            if (data.miner) {
+                const workersEl = document.getElementById('minerWorkers');
+                if (workersEl) workersEl.textContent = data.miner.workers || '4';
+
+                const targetPrefixEl = document.getElementById('minerTargetPrefix');
+                if (targetPrefixEl) targetPrefixEl.textContent = (data.miner.targetPrefix || '000') + '...';
+
+                const diffSelect = document.getElementById('diffSelect');
+                if (diffSelect && data.miner.difficultyZeros) {
+                    diffSelect.value = String(data.miner.difficultyZeros);
+                }
+
+                const statusDot = document.getElementById('minerStatusDot');
+                const statusText = document.getElementById('minerStatusText');
+                if (data.miner.isMining) {
+                    if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping';
+                    if (statusText) {
+                        statusText.textContent = 'DANG BĂM KHỐI...';
+                        statusText.className = 'text-xs font-mono font-black text-amber-600';
+                    }
+                } else {
+                    if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                    if (statusText) {
+                        statusText.textContent = 'SAN SANG';
+                        statusText.className = 'text-xs font-mono font-black text-emerald-700';
+                    }
+                }
+            }
+
+            // Đo lường vi mô tốc độ băm và khối đào gần nhất
+            if (data.blocks && data.blocks.length > 1) {
+                const lastBlock = data.blocks[data.blocks.length - 1];
+                const nonceEl = document.getElementById('minerLastNonce');
+                if (nonceEl) nonceEl.textContent = lastBlock.nonce;
+
+                const durEl = document.getElementById('minerLastDuration');
+                if (durEl) {
+                    durEl.textContent = (lastMiningDuration !== null) ? lastMiningDuration : '< 50';
+                }
+
+                const hrEl = document.getElementById('minerHashrate');
+                if (hrEl) {
+                    if (lastMiningDuration !== null && lastMiningNonce !== null) {
+                        const khs = ((lastMiningNonce / (Math.max(lastMiningDuration, 1) / 1000.0)) / 1000.0).toFixed(2);
+                        hrEl.textContent = khs;
+                    } else if (lastBlock.nonce > 0) {
+                        hrEl.textContent = (lastBlock.nonce / 80.0).toFixed(1);
+                    }
+                }
             }
 
             // RENDER CÁC BLOCK ĐỒNG BỘ 100% KÍCH THƯỚC (240px x 316px)
@@ -633,11 +897,15 @@ public final class DashboardHtmlTemplate {
 
             cont.innerHTML = candidates.map((c, idx) => {
                 const isLead = topCandidate && topCandidate.name === c.name && c.votes > 0;
+                const isLuong = c.name && (c.name.toLowerCase().includes('luong') || c.name.toLowerCase().includes('trung'));
                 return `
                     <div class="p-4 bg-slate-50/80 border ${isLead ? 'border-indigo-300 ring-1 ring-indigo-500/10 bg-indigo-50/20' : 'border-slate-200/90'} rounded-xl flex flex-col justify-between font-mono">
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between gap-1 flex-wrap">
                             <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Ung vien #0${idx + 1}</span>
-                            ${isLead ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold">Dan dau</span>' : ''}
+                            <div class="flex items-center gap-1">
+                                ${isLuong ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold">PoW Engine</span>' : ''}
+                                ${isLead ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold">Dan dau</span>' : ''}
+                            </div>
                         </div>
                         <div class="mt-2 flex items-baseline justify-between">
                             <span class="text-sm font-bold text-slate-900">${escapeHtml(c.name)}</span>
@@ -914,5 +1182,4 @@ public final class DashboardHtmlTemplate {
 </body>
 </html>
 """;
-    }
 }
