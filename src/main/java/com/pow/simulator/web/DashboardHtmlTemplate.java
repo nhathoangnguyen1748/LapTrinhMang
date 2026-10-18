@@ -15,7 +15,7 @@ public final class DashboardHtmlTemplate {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Cái Blockchain (Blockchain Ledger Explorer) | E-Voting</title>
+    <title>voteChain Explorer | Sổ Cái Chuỗi Khối</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -51,20 +51,20 @@ public final class DashboardHtmlTemplate {
                 <div>
                     <div class="flex items-center gap-2.5">
                         <h1 class="text-base font-black text-slate-900 tracking-tight uppercase">
-                            SỔ CÁI CHUỖI KHỐI &bull; BLOCKCHAIN LEDGER
+                            voteChain &bull; SỔ CÁI CHUỖI KHỐI
                         </h1>
                         <span class="text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> TRỰC TUYẾN
                         </span>
                     </div>
-                    <p class="text-[11px] text-slate-400 font-mono">Hệ thống sổ cái phân tán &bull; Bất biến &bull; Đồng thuận PoW SHA-256</p>
+                    <p class="text-[11px] text-slate-400 font-mono">Mạng voteChain &bull; Sổ cái phân tán &bull; Đồng thuận PoW SHA-256</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4 text-xs font-mono text-slate-500">
                 <div class="text-right hidden sm:block">
-                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Giao thức đồng thuận</div>
-                    <div class="font-bold text-slate-800 text-[11px]">Proof-of-Work (7 Zeros)</div>
+                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Tên mạng / Giao thức</div>
+                    <div class="font-bold text-slate-800 text-[11px]">voteChain (PoW 7 Zeros)</div>
                 </div>
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
                 <div class="text-right">
@@ -115,7 +115,7 @@ public final class DashboardHtmlTemplate {
                 🔍
             </div>
             <input type="text" id="searchInput" oninput="handleSearch(this.value)"
-                   placeholder="Tìm kiếm theo số hiệu Block (#0, #1...), mã băm Hash, Tx Hash (0x...), hoặc MSSV cử tri..."
+                   placeholder="Tìm kiếm trên voteChain theo số hiệu Block (#0, #1...), mã băm Hash, Tx Hash (0x...), hoặc MSSV cử tri..."
                    class="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 shadow-2xs font-mono transition">
         </div>
  
@@ -125,7 +125,7 @@ public final class DashboardHtmlTemplate {
                 <div class="flex items-center gap-2">
                     <span class="text-base text-slate-500 font-bold">🔗</span>
                     <h2 class="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        CHUỖI KHỐI SỔ CÁI (<span id="statBlocksStream">0</span> KHỐI ĐÃ KHÓA)
+                        CHUỖI KHỐI SỔ CÁI VOTECHAIN (<span id="statBlocksStream">0</span> KHỐI ĐÃ KHÓA)
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
@@ -161,7 +161,7 @@ public final class DashboardHtmlTemplate {
                     </div>
                 </div>
                 <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
-                    <span class="text-[10px] font-mono text-slate-500 font-medium">PoW SHA-256 Engine &bull; Khối nối xích bất biến</span>
+                    <span class="text-[10px] font-mono text-slate-500 font-medium">Mạng voteChain &bull; Khối nối xích bất biến SHA-256</span>
                 </div>
             </div>
 
@@ -182,7 +182,7 @@ public final class DashboardHtmlTemplate {
                     </div>
                 </div>
                 <div class="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
-                    <span class="text-[10px] font-mono text-slate-500 font-medium">Bầu cử P2P phi tập trung &bull; Mỗi cử tri 1 phiếu</span>
+                    <span class="text-[10px] font-mono text-slate-500 font-medium">Mạng voteChain &bull; Bầu cử P2P phi tập trung &bull; Mỗi cử tri 1 phiếu</span>
                 </div>
             </div>
         </section>
@@ -190,11 +190,8 @@ public final class DashboardHtmlTemplate {
     </div>
 
     <!-- FOOTER ĐƠN GIẢN -->
-    <footer class="max-w-7xl mx-auto w-full pt-6 pb-2 text-xs text-slate-400 font-medium flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-200/60 mt-4">
-        <span>Sổ Cái Chuỗi Khối Bất Biến &bull; Đồ án Lập Trình Mạng HUTECH</span>
-        <a href="/vote" target="_blank" class="text-slate-400 hover:text-slate-900 transition font-mono text-[11px] flex items-center gap-1">
-            <span>🗳️</span> Cổng Bỏ Phiếu Cử Tri (/vote) ↗
-        </a>
+    <footer class="max-w-7xl mx-auto w-full pt-6 pb-4 text-xs text-slate-400 font-medium text-center border-t border-slate-200/60 mt-4 font-mono">
+        Mạng voteChain &bull; Sổ Cái Chuỗi Khối Bất Biến &bull; Lập Trình Mạng HUTECH
     </footer>
 
     <!-- MODAL CHI TIẾT BLOCK & TRANSACTION (CHUẨN ETHERSCAN / SOLSCAN) -->

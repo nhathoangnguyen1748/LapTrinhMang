@@ -17,7 +17,7 @@ public final class VoterHtmlTemplate {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phòng Bỏ Phiếu Cử Tri Trực Tuyến | Blockchain E-Voting</title>
+    <title>Phòng Bỏ Phiếu Cử Tri | Mạng voteChain</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -46,12 +46,12 @@ public final class VoterHtmlTemplate {
                         PHÒNG BỎ PHIẾU CỬ TRI ĐIỆN TỬ
                         <span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-mono font-bold">● P2P CLUSTER ONLINE</span>
                     </h1>
-                    <p class="text-xs text-slate-500 font-medium">Đại Hội Đại Biểu Đoàn &bull; Khoa Công Nghệ Thông Tin (HUTECH)</p>
+                    <p class="text-xs text-slate-500 font-medium">Mạng voteChain &bull; Khoa Công Nghệ Thông Tin (HUTECH)</p>
                 </div>
             </div>
 
             <a href="/" class="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 text-slate-700 hover:text-slate-900 shadow-xs">
-                <span>📊</span> Bảng Điều Khiển Sổ Cái (Admin)
+                <span>📊</span> Sổ Cái voteChain Explorer ↗
             </a>
         </div>
     </header>
