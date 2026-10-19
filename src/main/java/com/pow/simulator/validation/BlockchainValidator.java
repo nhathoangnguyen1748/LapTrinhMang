@@ -90,7 +90,17 @@ public final class BlockchainValidator {
                                 curr.previousHash(), prev.hash()), logs);
             }
 
-            // D. Cryptographic Block Hash recalculation (detects altered content/headers/nonces)
+            // D. Merkle Root validation (if block has transactions)
+            if (!curr.transactions().isEmpty()) {
+                String expectedMerkle = MerkleTree.calculateRoot(curr.transactions());
+                if (!expectedMerkle.equals(curr.merkleRoot())) {
+                    return ValidationResult.invalid(i,
+                            String.format("Transaction payload tampered! Stored Merkle root (%s) does not match calculated root (%s)",
+                                    curr.merkleRoot(), expectedMerkle), logs);
+                }
+            }
+
+            // E. Cryptographic Block Hash recalculation (detects altered content/headers/nonces)
             String recalculatedHash = Block.calculateHash(curr.previousHash(), curr.timestamp(), curr.content(), curr.nonce());
             if (!recalculatedHash.equals(curr.hash())) {
                 return ValidationResult.invalid(i,

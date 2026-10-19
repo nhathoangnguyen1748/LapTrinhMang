@@ -207,39 +207,40 @@ public class P2PNode implements AutoCloseable {
         Block currentTip = blockchain.getLatestBlock();
 
         // Check if block extends our current chain
-        if (block.index() == currentTip.index() + 1 && block.previousHash().equals(currentTip.hash())) {
+        if (block.previousHash().equals(currentTip.hash())) {
             // Validate Proof of Work target
             if (!TargetMatcher.matches(block.hash(), block.difficultyBits())) {
-                log(String.format("[%s] Block #%d rejected: PoW does not satisfy target difficulty", nodeId, block.index()));
+                log(String.format("[%s] Block rejected: PoW does not satisfy target difficulty", nodeId));
                 return;
             }
 
-            // Validate Merkle Root
-            String calculatedMerkle = MerkleTree.calculateRoot(block.transactions());
-            if (!calculatedMerkle.equals(block.merkleRoot())) {
-                log(String.format("[%s] Block #%d rejected: Merkle Root mismatch", nodeId, block.index()));
-                return;
+            // Validate Merkle Root if block has transactions
+            if (!block.transactions().isEmpty()) {
+                String calculatedMerkle = MerkleTree.calculateRoot(block.transactions());
+                if (!calculatedMerkle.equals(block.merkleRoot())) {
+                    log(String.format("[%s] Block rejected: Merkle Root mismatch", nodeId));
+                    return;
+                }
             }
 
             // Validate header hash recalculation
-            String recalculatedHash = block.calculateHash(block.nonce());
+            String recalculatedHash = Block.calculateHash(block.previousHash(), block.timestamp(), block.content(), block.nonce());
             if (!recalculatedHash.equals(block.hash())) {
-                log(String.format("[%s] Block #%d rejected: Hash recalculation mismatch", nodeId, block.index()));
+                log(String.format("[%s] Block rejected: Hash recalculation mismatch", nodeId));
                 return;
             }
 
             // Valid block: append to local chain
             blockchain.addBlock(block);
             mempool.removeAll(block.transactions());
-            log(String.format("[%s] ACCEPTED Block #%d via TCP broadcast! [Hash: %s, Txs: %d, Ledger Height: %d]",
-                    nodeId, block.index(), block.getShortHash(), block.transactions().size(), blockchain.size()));
+            log(String.format("[%s] ACCEPTED Block #%d via TCP broadcast! [Hash: %s, Ledger Height: %d]",
+                    nodeId, blockchain.size() - 1, block.getShortHash(), blockchain.size()));
 
             // Gossip block to all other peers
             gossip(msg, peer.getRemoteAddress());
 
-        } else if (block.index() > currentTip.index() + 1) {
-            log(String.format("[%s] Received block index %d ahead of current tip %d. Requesting chain synchronization...",
-                    nodeId, block.index(), currentTip.index()));
+        } else if (!blockchain.hasBlock(block.hash())) {
+            log(String.format("[%s] Received block ahead of current tip or on fork. Requesting chain synchronization...", nodeId));
             requestChainSync(peer);
         }
     }

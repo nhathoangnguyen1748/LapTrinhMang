@@ -61,13 +61,13 @@ public final class DashboardHtmlTemplate {
                 </div>
             </div>
 
-            <div class="flex items-center gap-4 text-xs font-mono text-slate-500">
-                <div class="text-right hidden sm:block">
-                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Ten mang / Giao thuc</div>
-                    <div class="font-bold text-slate-800 text-[11px]">voteChain (PoW 7 Zeros)</div>
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block font-mono">
+                    <div class="text-[10px] text-slate-400 uppercase font-semibold">Giao thuc / Do kho</div>
+                    <div class="font-bold text-slate-800 text-[11px]">voteChain (PoW 6 Zeros)</div>
                 </div>
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-                <div class="text-right">
+                <div class="text-right font-mono">
                     <div class="text-[10px] text-slate-400 uppercase font-semibold">Tinh toan ven</div>
                     <div class="font-bold text-emerald-600 text-[11px]">100% Xac thuc</div>
                 </div>
@@ -844,9 +844,9 @@ public final class DashboardHtmlTemplate {
             if (e.key === 'Escape') closeModal();
         });
 
-        // Tự động tải và cập nhật mỗi 1.5 giây
+        // Tự động tải và cập nhật tức thì mỗi 500ms
         fetchStatus();
-        setInterval(fetchStatus, 1500);
+        setInterval(fetchStatus, 500);
     </script>
 </body>
 </html>

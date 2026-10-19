@@ -1,10 +1,13 @@
 package com.pow.simulator.core;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import com.pow.simulator.crypto.HashUtil;
 
 /**
  * Sổ Cái Blockchain Bầu Cử (Election Blockchain Ledger).
@@ -15,7 +18,7 @@ public class Blockchain {
 
     private final List<Block> chain;
     private final List<Vote> mempool = new CopyOnWriteArrayList<>();
-    private int difficultyLeadingZeros = 7; // Mặc định 7 số '0' ("0000000...") theo yêu cầu!
+    private int difficultyLeadingZeros = 6; // Mặc định cố định 6 số '0' ("000000...") theo yêu cầu!
 
     public Blockchain(Block genesisBlock) {
         Objects.requireNonNull(genesisBlock, "Genesis block must not be null");
@@ -47,6 +50,7 @@ public class Blockchain {
                     "Hash linkage mismatch: block previousHash %s does not match latest hash %s",
                     block.previousHash(), latest.hash()));
         }
+        Block.registerBlockIndex(block, chain.size());
         chain.add(block);
     }
 
@@ -93,6 +97,19 @@ public class Blockchain {
         this.mempool.clear();
     }
 
+    public synchronized void removeConfirmedVotesFromMempool(String content) {
+        if (content == null || content.isBlank() || content.startsWith("Khối rỗng")) {
+            return;
+        }
+        mempool.removeIf(v -> content.contains(v.toText()) 
+                           || content.contains("[" + v.voterId() + "]") 
+                           || content.contains(v.voterId()));
+    }
+
+    public synchronized void purgeVotesAlreadyInLedger() {
+        mempool.removeIf(v -> hasVotedInLedger(v.voterId()));
+    }
+
     /**
      * Đồng bộ Block mới nhận được từ Peer Node qua mạng P2P.
      * Thêm Block vào sổ cái và tự động xóa các phiếu trong Mempool đã được đóng khối.
@@ -105,9 +122,10 @@ public class Blockchain {
                     "Hash linkage mismatch: block previousHash %s does not match latest hash %s",
                     block.previousHash(), latest.hash()));
         }
+        Block.registerBlockIndex(block, chain.size());
         chain.add(block);
-        String content = block.content();
-        mempool.removeIf(v -> content.contains(v.toText()) || content.contains("[" + v.voterId() + "]"));
+        removeConfirmedVotesFromMempool(block.content());
+        purgeVotesAlreadyInLedger();
     }
 
     public synchronized boolean replaceChain(List<Block> newChain) {
@@ -116,7 +134,23 @@ public class Blockchain {
         }
         this.chain.clear();
         this.chain.addAll(newChain);
+        for (int i = 0; i < this.chain.size(); i++) {
+            Block.registerBlockIndex(this.chain.get(i), i);
+        }
+        purgeVotesAlreadyInLedger();
         return true;
+    }
+
+    public synchronized void forceSyncChain(List<Block> newChain) {
+        if (newChain == null || newChain.isEmpty()) {
+            return;
+        }
+        this.chain.clear();
+        this.chain.addAll(newChain);
+        for (int i = 0; i < this.chain.size(); i++) {
+            Block.registerBlockIndex(this.chain.get(i), i);
+        }
+        purgeVotesAlreadyInLedger();
     }
 
     // =========================================================================
@@ -154,39 +188,61 @@ public class Blockchain {
      * Khai thác PoW: Đóng gói các phiếu bầu trong Mempool thành Block mới (5 thuộc tính)
      */
     public synchronized Block minePendingVotes() {
-        if (mempool.isEmpty()) {
-            throw new IllegalStateException("Hòm phiếu Mempool đang trống! Hãy bỏ phiếu trước khi khai thác.");
-        }
-
-        // Gom nội dung các phiếu bầu
+        // Gom nội dung các phiếu bầu (nếu Mempool trống, tạo khối rỗng với 0 phiếu bầu)
         List<Vote> votesToMine = new ArrayList<>(mempool);
-        StringBuilder contentBuilder = new StringBuilder();
-        for (int i = 0; i < votesToMine.size(); i++) {
-            if (i > 0) contentBuilder.append(" | ");
-            contentBuilder.append(votesToMine.get(i).toText());
+        String content;
+        if (votesToMine.isEmpty()) {
+            content = "Khối rỗng (0 phiếu bầu)";
+        } else {
+            StringBuilder contentBuilder = new StringBuilder();
+            for (int i = 0; i < votesToMine.size(); i++) {
+                if (i > 0) contentBuilder.append(" | ");
+                contentBuilder.append(votesToMine.get(i).toText());
+            }
+            content = contentBuilder.toString();
         }
-        String content = contentBuilder.toString();
 
         long timestamp = System.currentTimeMillis();
         String previousHash = getLatestBlock().hash();
-        String targetPrefix = "0".repeat(difficultyLeadingZeros);
+        int targetZeros = difficultyLeadingZeros;
 
         AtomicBoolean solved = new AtomicBoolean(false);
         AtomicReference<Block> resultBlock = new AtomicReference<>(null);
         AtomicLong nonceGenerator = new AtomicLong(0L);
 
-        int workers = Math.max(4, Runtime.getRuntime().availableProcessors());
+        int workers = Math.max(8, Runtime.getRuntime().availableProcessors() * 2);
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             List<Future<?>> futures = new ArrayList<>();
+            byte[] basePrefix = (previousHash + ":" + timestamp + ":" + content + ":").getBytes(StandardCharsets.UTF_8);
             for (int w = 0; w < workers; w++) {
                 futures.add(executor.submit(() -> {
+                    MessageDigest md = HashUtil.getDigest();
                     while (!solved.get() && !Thread.currentThread().isInterrupted()) {
-                        long chunkStart = nonceGenerator.getAndAdd(4096);
-                        for (long n = chunkStart; n < chunkStart + 4096; n++) {
+                        long chunkStart = nonceGenerator.getAndAdd(8192);
+                        for (long n = chunkStart; n < chunkStart + 8192; n++) {
                             if ((n & 0xFF) == 0 && solved.get()) break;
-                            String h = Block.calculateHash(previousHash, timestamp, content, n);
-                            if (h.startsWith(targetPrefix)) {
+                            md.reset();
+                            md.update(basePrefix);
+                            md.update(Long.toString(n).getBytes(StandardCharsets.US_ASCII));
+                            byte[] digest = md.digest();
+
+                            boolean match = true;
+                            int fullBytes = targetZeros / 2;
+                            for (int b = 0; b < fullBytes; b++) {
+                                if (digest[b] != 0) {
+                                    match = false;
+                                    break;
+                                }
+                            }
+                            if (match && (targetZeros % 2 != 0)) {
+                                if ((digest[fullBytes] & 0xF0) != 0) {
+                                    match = false;
+                                }
+                            }
+
+                            if (match) {
                                 if (solved.compareAndSet(false, true)) {
+                                    String h = HashUtil.bytesToHex(digest);
                                     resultBlock.set(new Block(h, timestamp, previousHash, content, n));
                                 }
                                 break;
@@ -204,7 +260,8 @@ public class Blockchain {
 
         Block minedBlock = resultBlock.get();
         if (minedBlock == null) {
-            // Fallback single-thread
+            // Fallback
+            String targetPrefix = "0".repeat(targetZeros);
             long n = 0;
             while (true) {
                 String h = Block.calculateHash(previousHash, timestamp, content, n);
@@ -216,8 +273,11 @@ public class Blockchain {
             }
         }
 
+        Block.registerBlockIndex(minedBlock, chain.size());
         chain.add(minedBlock);
-        mempool.removeAll(votesToMine);
+        if (!votesToMine.isEmpty()) {
+            mempool.removeAll(votesToMine);
+        }
 
         return minedBlock;
     }
@@ -369,6 +429,7 @@ public class Blockchain {
     }
 
     public synchronized void setBlockForSimulation(int index, Block modifiedBlock) {
+        Block.registerBlockIndex(modifiedBlock, index);
         chain.set(index, modifiedBlock);
     }
 
@@ -403,7 +464,27 @@ public class Blockchain {
     }
 
     public synchronized double getBalance(String address) {
-        return 0.0;
+        if (address == null || address.isBlank()) return 0.0;
+        double balance = 0.0;
+        for (Block b : chain) {
+            for (Transaction tx : b.transactions()) {
+                if (address.equalsIgnoreCase(tx.recipient())) {
+                    balance += tx.amount();
+                }
+                if (address.equalsIgnoreCase(tx.sender())) {
+                    balance -= tx.amount();
+                }
+            }
+        }
+        return Math.max(0.0, balance);
+    }
+
+    public synchronized boolean hasBlock(String hash) {
+        if (hash == null || hash.isBlank()) return false;
+        for (Block b : chain) {
+            if (hash.equals(b.hash())) return true;
+        }
+        return false;
     }
 
     public int getDifficultyLeadingZeros() {
