@@ -56,13 +56,7 @@ public final class BlockchainValidator {
                     "Genesis previousHash must be 64 zeros, found: " + genesis.previousHash(), logs);
         }
 
-        String computedGenesisMerkle = MerkleTree.calculateRoot(genesis.transactions());
-        if (!computedGenesisMerkle.equals(genesis.merkleRoot())) {
-            return ValidationResult.invalid(0,
-                    "Genesis Merkle root tampered: expected " + computedGenesisMerkle + ", got " + genesis.merkleRoot(), logs);
-        }
-
-        String computedGenesisHash = genesis.calculateHash(genesis.nonce());
+        String computedGenesisHash = Block.calculateHash(genesis.previousHash(), genesis.timestamp(), genesis.content(), genesis.nonce());
         if (!computedGenesisHash.equals(genesis.hash())) {
             return ValidationResult.invalid(0,
                     "Genesis block hash mismatch: stored " + genesis.hash() + " != calculated " + computedGenesisHash, logs);
@@ -96,16 +90,18 @@ public final class BlockchainValidator {
                                 curr.previousHash(), prev.hash()), logs);
             }
 
-            // D. Merkle Root integrity (detects altered transactions/payload)
-            String computedMerkleRoot = MerkleTree.calculateRoot(curr.transactions());
-            if (!computedMerkleRoot.equals(curr.merkleRoot())) {
-                return ValidationResult.invalid(i,
-                        String.format("Transaction payload tampered! Stored MerkleRoot (%s) does not match actual transactions root (%s)",
-                                curr.merkleRoot(), computedMerkleRoot), logs);
+            // D. Merkle Root validation (if block has transactions)
+            if (!curr.transactions().isEmpty()) {
+                String expectedMerkle = MerkleTree.calculateRoot(curr.transactions());
+                if (!expectedMerkle.equals(curr.merkleRoot())) {
+                    return ValidationResult.invalid(i,
+                            String.format("Transaction payload tampered! Stored Merkle root (%s) does not match calculated root (%s)",
+                                    curr.merkleRoot(), expectedMerkle), logs);
+                }
             }
 
-            // E. Cryptographic Header Hash recalculation (detects altered headers/nonces)
-            String recalculatedHash = curr.calculateHash(curr.nonce());
+            // E. Cryptographic Block Hash recalculation (detects altered content/headers/nonces)
+            String recalculatedHash = Block.calculateHash(curr.previousHash(), curr.timestamp(), curr.content(), curr.nonce());
             if (!recalculatedHash.equals(curr.hash())) {
                 return ValidationResult.invalid(i,
                         String.format("Block hash tampered! Stored hash (%s) does not match recalculated hash (%s)",

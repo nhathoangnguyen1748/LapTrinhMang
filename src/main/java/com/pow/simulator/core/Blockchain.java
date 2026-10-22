@@ -1,83 +1,59 @@
 package com.pow.simulator.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import com.pow.simulator.crypto.HashUtil;
 
 /**
- * Thread-safe container and manager for the sequence of blocks in the blockchain ledger.
+ * Sổ Cái Blockchain Bầu Cử (Election Blockchain Ledger).
+ * Quản lý chuỗi các khối có 5 thuộc tính, hòm phiếu Mempool,
+ * và thống kê kết quả bầu cử (danh sách cử tri, số phiếu ứng cử viên).
  */
 public class Blockchain {
 
     private final List<Block> chain;
+    private final List<Vote> mempool = new CopyOnWriteArrayList<>();
+    private int difficultyLeadingZeros = 6; // Mặc định cố định 6 số '0' ("000000...") theo yêu cầu!
 
-    /**
-     * Initializes an empty blockchain with the provided genesis block.
-     *
-     * @param genesisBlock first block in the chain
-     */
     public Blockchain(Block genesisBlock) {
         Objects.requireNonNull(genesisBlock, "Genesis block must not be null");
         this.chain = new CopyOnWriteArrayList<>();
         this.chain.add(genesisBlock);
     }
 
-    /**
-     * Private constructor for cloning blockchain instances.
-     */
     private Blockchain(List<Block> existingChain) {
         this.chain = new CopyOnWriteArrayList<>(existingChain);
     }
 
-    /**
-     * Factory constructor creating a standard blockchain with default genesis block.
-     *
-     * @param initialDifficultyBits difficulty bits for genesis
-     * @return freshly initialized Blockchain
-     */
+    public static Blockchain withDefaultGenesis() {
+        return new Blockchain(Block.createGenesisBlock());
+    }
+
     public static Blockchain withDefaultGenesis(int initialDifficultyBits) {
-        Block genesis = Block.createGenesisBlock(initialDifficultyBits);
-        return new Blockchain(genesis);
+        return withDefaultGenesis();
     }
 
-    /**
-     * Factory constructor creating a blockchain with default genesis block and specific timestamp.
-     *
-     * @param initialDifficultyBits difficulty bits for genesis
-     * @param timestamp             epoch milliseconds for genesis block
-     * @return freshly initialized Blockchain
-     */
     public static Blockchain withDefaultGenesis(int initialDifficultyBits, long timestamp) {
-        Block genesis = Block.createGenesisBlock(initialDifficultyBits, timestamp);
-        return new Blockchain(genesis);
+        return new Blockchain(Block.createGenesisBlock(timestamp));
     }
 
-    /**
-     * Adds a newly mined block to the head of the chain.
-     *
-     * @param block mined block
-     * @throws IllegalArgumentException if block does not link to the current latest block
-     */
     public synchronized void addBlock(Block block) {
         Objects.requireNonNull(block, "Block to add must not be null");
         Block latest = getLatestBlock();
-        if (block.index() != latest.index() + 1) {
-            throw new IllegalArgumentException(String.format(
-                    "Invalid block index: expected %d, got %d", latest.index() + 1, block.index()));
-        }
         if (!block.previousHash().equals(latest.hash())) {
             throw new IllegalArgumentException(String.format(
                     "Hash linkage mismatch: block previousHash %s does not match latest hash %s",
                     block.previousHash(), latest.hash()));
         }
+        Block.registerBlockIndex(block, chain.size());
         chain.add(block);
     }
 
-    /**
-     * Retrieves the most recently added block at the tip of the chain.
-     */
     public Block getLatestBlock() {
         if (chain.isEmpty()) {
             throw new IllegalStateException("Blockchain is empty");
@@ -85,9 +61,10 @@ public class Blockchain {
         return chain.get(chain.size() - 1);
     }
 
-    /**
-     * Retrieves a block at a specific zero-based index.
-     */
+    public Block getGenesisBlock() {
+        return chain.get(0);
+    }
+
     public Block getBlock(int index) {
         if (index < 0 || index >= chain.size()) {
             throw new IndexOutOfBoundsException("Block index out of bounds: " + index);
@@ -95,43 +72,371 @@ public class Blockchain {
         return chain.get(index);
     }
 
-    /**
-     * Returns total number of blocks in the chain.
-     */
     public int size() {
         return chain.size();
     }
 
-    /**
-     * Returns an unmodifiable snapshot view of the block sequence.
-     */
+    public int getHeight() {
+        return chain.size();
+    }
+
     public List<Block> getChain() {
         return Collections.unmodifiableList(new ArrayList<>(chain));
     }
 
-    /**
-     * Creates an independent deep copy of this blockchain.
-     * Crucial for branch exploration and attack simulation without corrupting valid state.
-     */
     public Blockchain copy() {
-        return new Blockchain(new ArrayList<>(this.chain));
+        Blockchain b = new Blockchain(new ArrayList<>(this.chain));
+        b.setDifficultyLeadingZeros(this.difficultyLeadingZeros);
+        for (Vote v : this.mempool) {
+            b.mempool.add(v);
+        }
+        return b;
+    }
+
+    public synchronized void clearMempool() {
+        this.mempool.clear();
+    }
+
+    public synchronized void removeConfirmedVotesFromMempool(String content) {
+        if (content == null || content.isBlank() || content.startsWith("Khối rỗng")) {
+            return;
+        }
+        mempool.removeIf(v -> content.contains(v.toText()) 
+                           || content.contains("[" + v.voterId() + "]") 
+                           || content.contains(v.voterId()));
+    }
+
+    public synchronized void purgeVotesAlreadyInLedger() {
+        mempool.removeIf(v -> hasVotedInLedger(v.voterId()));
     }
 
     /**
-     * Replaces the local chain with a valid, longer chain (Nakamoto consensus rule).
+     * Đồng bộ Block mới nhận được từ Peer Node qua mạng P2P.
+     * Thêm Block vào sổ cái và tự động xóa các phiếu trong Mempool đã được đóng khối.
      */
+    public synchronized void syncMinedBlock(Block block) {
+        Objects.requireNonNull(block, "Block không được null");
+        Block latest = getLatestBlock();
+        if (!block.previousHash().equals(latest.hash())) {
+            throw new IllegalArgumentException(String.format(
+                    "Hash linkage mismatch: block previousHash %s does not match latest hash %s",
+                    block.previousHash(), latest.hash()));
+        }
+        Block.registerBlockIndex(block, chain.size());
+        chain.add(block);
+        removeConfirmedVotesFromMempool(block.content());
+        purgeVotesAlreadyInLedger();
+    }
+
     public synchronized boolean replaceChain(List<Block> newChain) {
         if (newChain == null || newChain.size() <= this.chain.size()) {
             return false;
         }
         this.chain.clear();
         this.chain.addAll(newChain);
+        for (int i = 0; i < this.chain.size(); i++) {
+            Block.registerBlockIndex(this.chain.get(i), i);
+        }
+        purgeVotesAlreadyInLedger();
+        return true;
+    }
+
+    public synchronized void forceSyncChain(List<Block> newChain) {
+        if (newChain == null || newChain.isEmpty()) {
+            return;
+        }
+        this.chain.clear();
+        this.chain.addAll(newChain);
+        for (int i = 0; i < this.chain.size(); i++) {
+            Block.registerBlockIndex(this.chain.get(i), i);
+        }
+        purgeVotesAlreadyInLedger();
+    }
+
+    // =========================================================================
+    //  QUẢN LÝ MEMPOOL (HÒM PHIẾU TẠM) & BẦU CỬ
+    // =========================================================================
+
+    public List<Vote> getMempool() {
+        return Collections.unmodifiableList(new ArrayList<>(mempool));
+    }
+
+    /**
+     * Thêm phiếu bầu vào Mempool.
+     * Kiểm tra chống gian lận: 1 người chỉ được bầu 1 lần duy nhất!
+     */
+    public synchronized void addVoteToMempool(Vote vote) {
+        Objects.requireNonNull(vote, "Phiếu bầu không được null");
+        String voter = vote.voterId();
+
+        // Kiểm tra xem cử tri đã bỏ phiếu trong Sổ Cái chưa
+        if (hasVotedInLedger(voter)) {
+            throw new IllegalArgumentException("Gian lận: Cử tri '" + voter + "' đã bỏ phiếu trong sổ cái rồi! Mỗi cử tri chỉ được bầu 1 lần duy nhất.");
+        }
+
+        // Kiểm tra xem cử tri có đang chờ trong Mempool chưa
+        for (Vote pending : mempool) {
+            if (pending.voterId().equalsIgnoreCase(voter)) {
+                throw new IllegalArgumentException("Cử tri '" + voter + "' đã có phiếu đang chờ trong Mempool!");
+            }
+        }
+
+        mempool.add(vote);
+    }
+
+    /**
+     * Khai thác PoW: Đóng gói các phiếu bầu trong Mempool thành Block mới (5 thuộc tính)
+     */
+    public synchronized Block minePendingVotes() {
+        // Gom nội dung các phiếu bầu (nếu Mempool trống, tạo khối rỗng với 0 phiếu bầu)
+        List<Vote> votesToMine = new ArrayList<>(mempool);
+        String content;
+        if (votesToMine.isEmpty()) {
+            content = "Khối rỗng (0 phiếu bầu)";
+        } else {
+            StringBuilder contentBuilder = new StringBuilder();
+            for (int i = 0; i < votesToMine.size(); i++) {
+                if (i > 0) contentBuilder.append(" | ");
+                contentBuilder.append(votesToMine.get(i).toText());
+            }
+            content = contentBuilder.toString();
+        }
+
+        long timestamp = System.currentTimeMillis();
+        String previousHash = getLatestBlock().hash();
+        int targetZeros = difficultyLeadingZeros;
+
+        AtomicBoolean solved = new AtomicBoolean(false);
+        AtomicReference<Block> resultBlock = new AtomicReference<>(null);
+        AtomicLong nonceGenerator = new AtomicLong(0L);
+
+        int workers = Math.max(8, Runtime.getRuntime().availableProcessors() * 2);
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<?>> futures = new ArrayList<>();
+            byte[] basePrefix = (previousHash + ":" + timestamp + ":" + content + ":").getBytes(StandardCharsets.UTF_8);
+            for (int w = 0; w < workers; w++) {
+                futures.add(executor.submit(() -> {
+                    MessageDigest md = HashUtil.getDigest();
+                    while (!solved.get() && !Thread.currentThread().isInterrupted()) {
+                        long chunkStart = nonceGenerator.getAndAdd(8192);
+                        for (long n = chunkStart; n < chunkStart + 8192; n++) {
+                            if ((n & 0xFF) == 0 && solved.get()) break;
+                            md.reset();
+                            md.update(basePrefix);
+                            md.update(Long.toString(n).getBytes(StandardCharsets.US_ASCII));
+                            byte[] digest = md.digest();
+
+                            boolean match = true;
+                            int fullBytes = targetZeros / 2;
+                            for (int b = 0; b < fullBytes; b++) {
+                                if (digest[b] != 0) {
+                                    match = false;
+                                    break;
+                                }
+                            }
+                            if (match && (targetZeros % 2 != 0)) {
+                                if ((digest[fullBytes] & 0xF0) != 0) {
+                                    match = false;
+                                }
+                            }
+
+                            if (match) {
+                                if (solved.compareAndSet(false, true)) {
+                                    String h = HashUtil.bytesToHex(digest);
+                                    resultBlock.set(new Block(h, timestamp, previousHash, content, n));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }));
+            }
+            for (var f : futures) {
+                try {
+                    f.get();
+                } catch (Exception ignored) {}
+            }
+        }
+
+        Block minedBlock = resultBlock.get();
+        if (minedBlock == null) {
+            // Fallback
+            String targetPrefix = "0".repeat(targetZeros);
+            long n = 0;
+            while (true) {
+                String h = Block.calculateHash(previousHash, timestamp, content, n);
+                if (h.startsWith(targetPrefix)) {
+                    minedBlock = new Block(h, timestamp, previousHash, content, n);
+                    break;
+                }
+                n++;
+            }
+        }
+
+        Block.registerBlockIndex(minedBlock, chain.size());
+        chain.add(minedBlock);
+        if (!votesToMine.isEmpty()) {
+            mempool.removeAll(votesToMine);
+        }
+
+        return minedBlock;
+    }
+
+    // =========================================================================
+    //  THỐNG KÊ SỔ CÁI BẦU CỬ
+    // =========================================================================
+
+    public static String removeAccents(String str) {
+        if (str == null) return "";
+        String n = java.text.Normalizer.normalize(str, java.text.Normalizer.Form.NFD);
+        n = n.replaceAll("\\p{M}", "");
+        n = n.replace("đ", "d").replace("Đ", "D");
+        return n;
+    }
+
+    public static String normalizeCandidateName(String raw) {
+        if (raw == null) return "";
+        String lower = raw.toLowerCase();
+        if (lower.contains("nhat") || lower.contains("nh?t") || (lower.contains("nguy") && (lower.contains("ho") || lower.contains("nh")))) {
+            return "Nguyen Hoang Nhat";
+        }
+        if (lower.contains("luong") || lower.contains("lương") || lower.contains("trung")) {
+            return "Nguyen Do Trung Luong";
+        }
+        if (lower.contains("minh") || lower.contains("quang")) {
+            return "Le Quang Minh";
+        }
+        return removeAccents(raw).replaceAll("[^a-zA-Z0-9 ]", "").trim();
+    }
+
+    /**
+     * Đếm tổng số phiếu của từng ứng cử viên được lưu trong toàn bộ Sổ Cái.
+     */
+    public Map<String, Integer> getElectionResults(List<String> registeredCandidates) {
+        Map<String, Integer> results = new LinkedHashMap<>();
+        for (String c : registeredCandidates) {
+            results.put(c, 0);
+        }
+
+        for (int i = 1; i < chain.size(); i++) { // Bỏ qua Genesis Block
+            String content = chain.get(i).content();
+            int start = -1;
+            int idx1 = content.indexOf("bầu cho [");
+            int idx2 = content.indexOf("bau cho [");
+            if (idx1 != -1 && idx2 != -1) start = Math.min(idx1, idx2);
+            else if (idx1 != -1) start = idx1;
+            else start = idx2;
+
+            while (start != -1) {
+                int end = content.indexOf("]", start);
+                if (end != -1) {
+                    int prefixLen = content.startsWith("bầu cho [", start) ? "bầu cho [".length() : "bau cho [".length();
+                    String candInVote = content.substring(start + prefixLen, end).trim();
+                    String normVote = normalizeCandidateName(candInVote);
+                    for (String c : registeredCandidates) {
+                        String normC = normalizeCandidateName(c);
+                        if (normVote.equalsIgnoreCase(normC)) {
+                            results.put(c, results.getOrDefault(c, 0) + 1);
+                            break;
+                        }
+                    }
+                    int next1 = content.indexOf("bầu cho [", end);
+                    int next2 = content.indexOf("bau cho [", end);
+                    if (next1 != -1 && next2 != -1) start = Math.min(next1, next2);
+                    else if (next1 != -1) start = next1;
+                    else start = next2;
+                } else {
+                    break;
+                }
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Danh sách tất cả cử tri đã bỏ phiếu trong Sổ Cái.
+     */
+    public List<String> getAllVotedVoters() {
+        List<String> voters = new ArrayList<>();
+        String[] prefixes = {"Cử tri [", "Cu tri ["};
+        for (int i = 1; i < chain.size(); i++) {
+            String content = chain.get(i).content();
+            for (String prefix : prefixes) {
+                int startIdx = 0;
+                while ((startIdx = content.indexOf(prefix, startIdx)) != -1) {
+                    int endIdx = content.indexOf("]", startIdx);
+                    if (endIdx != -1) {
+                        String voter = content.substring(startIdx + prefix.length(), endIdx).trim();
+                        if (!voters.contains(voter)) {
+                            voters.add(voter);
+                        }
+                        startIdx = endIdx;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        return voters;
+    }
+
+    public boolean hasVotedInLedger(String voterId) {
+        if (voterId == null || voterId.isBlank()) return false;
+        String cleanV = removeAccents(voterId).trim();
+        for (String v : getAllVotedVoters()) {
+            if (v.equalsIgnoreCase(voterId.trim()) || removeAccents(v).trim().equalsIgnoreCase(cleanV)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getTotalVotes() {
+        return getAllVotedVoters().size();
+    }
+
+    /**
+     * Kiểm tra tính toàn vẹn của Sổ Cái.
+     * Bất kỳ sự can thiệp / sửa đổi nội dung khối cũ nào đều bị phát hiện!
+     */
+    public boolean isChainValid() {
+        for (int i = 1; i < chain.size(); i++) {
+            Block current = chain.get(i);
+            Block previous = chain.get(i - 1);
+
+            // Kiểm tra hash liên kết
+            if (!current.previousHash().equals(previous.hash())) {
+                return false;
+            }
+
+            // Kiểm tra tính toán lại hash
+            String calculated = Block.calculateHash(current.previousHash(), current.timestamp(), current.content(), current.nonce());
+            if (!current.hash().equals(calculated)) {
+                return false;
+            }
+        }
         return true;
     }
 
     /**
-     * Serializes the entire sequence of blocks for network transmission.
+     * Thử nghiệm gian lận: Thay đổi nội dung của khối mà không tính lại hash
      */
+    public synchronized void tamperBlockContent(int blockIndex, String fakeContent) {
+        if (blockIndex <= 0 || blockIndex >= chain.size()) return;
+        Block target = chain.get(blockIndex);
+        Block tampered = new Block(target.hash(), target.timestamp(), target.previousHash(), fakeContent, target.nonce());
+        chain.set(blockIndex, tampered);
+    }
+
+    public synchronized void setBlockForSimulation(int index, Block modifiedBlock) {
+        Block.registerBlockIndex(modifiedBlock, index);
+        chain.set(index, modifiedBlock);
+    }
+
+    // =========================================================================
+    //  SERIALIZATION & STORAGE
+    // =========================================================================
+
     public synchronized String serializeChain() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < chain.size(); i++) {
@@ -143,9 +448,6 @@ public class Blockchain {
         return sb.toString();
     }
 
-    /**
-     * Deserializes a full blockchain from network string representation.
-     */
     public static List<Block> deserializeBlocks(String raw) {
         if (raw == null || raw.isBlank()) {
             return List.of();
@@ -161,13 +463,35 @@ public class Blockchain {
         return parsedBlocks;
     }
 
-    /**
-     * Replaces a block at an index with a modified block (used specifically by attack simulators).
-     */
-    public synchronized void setBlockForSimulation(int index, Block modifiedBlock) {
-        if (index < 0 || index >= chain.size()) {
-            throw new IndexOutOfBoundsException("Block index out of bounds: " + index);
+    public synchronized double getBalance(String address) {
+        if (address == null || address.isBlank()) return 0.0;
+        double balance = 0.0;
+        for (Block b : chain) {
+            for (Transaction tx : b.transactions()) {
+                if (address.equalsIgnoreCase(tx.recipient())) {
+                    balance += tx.amount();
+                }
+                if (address.equalsIgnoreCase(tx.sender())) {
+                    balance -= tx.amount();
+                }
+            }
         }
-        chain.set(index, modifiedBlock);
+        return Math.max(0.0, balance);
+    }
+
+    public synchronized boolean hasBlock(String hash) {
+        if (hash == null || hash.isBlank()) return false;
+        for (Block b : chain) {
+            if (hash.equals(b.hash())) return true;
+        }
+        return false;
+    }
+
+    public int getDifficultyLeadingZeros() {
+        return difficultyLeadingZeros;
+    }
+
+    public void setDifficultyLeadingZeros(int difficultyLeadingZeros) {
+        this.difficultyLeadingZeros = difficultyLeadingZeros;
     }
 }

@@ -128,8 +128,15 @@ public final class HashUtil {
      * @return count of consecutive leading zero bits
      */
     public static int countLeadingZeroBits(String hexHash) {
-        byte[] bytes = hexToBytes(hexHash);
-        return countLeadingZeroBits(bytes);
+        if (hexHash == null || hexHash.isBlank()) {
+            return 0;
+        }
+        try {
+            byte[] bytes = hexToBytes(hexHash);
+            return countLeadingZeroBits(bytes);
+        } catch (Exception e) {
+            return countLeadingZeroHex(hexHash) * 4;
+        }
     }
 
     /**

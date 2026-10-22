@@ -18,6 +18,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>21</maven.compiler.release>
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
+        <exec.mainClass>com.pow.simulator.cli.App</exec.mainClass>
     </properties>
 
     <dependencies>
@@ -67,7 +68,23 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <mainClass>com.pow.simulator.cli.App</mainClass>
+                    <mainClass>${exec.mainClass}</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- Maven JAR Plugin configured for executable standalone JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <finalName>blockchain-evoting-node</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.pow.simulator.web.WebLauncher</mainClass>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
