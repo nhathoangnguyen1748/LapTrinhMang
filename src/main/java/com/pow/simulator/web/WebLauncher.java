@@ -62,7 +62,7 @@ public class WebLauncher {
             }
 
         } catch (Exception e) {
-            System.err.println("❌ Loi khoi chay Web Server: " + e.getMessage());
+            System.err.println("[ERROR] Loi khoi chay Web Server: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -97,7 +97,7 @@ public class WebLauncher {
     }
     public static void printNetworkAccessGuide(int port) {
         System.out.println("=========================================================================");
-        System.out.println(" 🌐 DIA CHI TRUY CAP GIAO DIEN (HO TRO DA MAY TINH & DIEN THOAI):");
+        System.out.println(" [*] DIA CHI TRUY CAP GIAO DIEN (HO TRO DA MAY TINH & DIEN THOAI):");
         System.out.println("    - May nay (Localhost):       http://localhost:" + port);
         try {
             java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
@@ -122,7 +122,7 @@ public class WebLauncher {
             }
         } catch (Exception ignored) {}
         System.out.println("-------------------------------------------------------------------------");
-        System.out.println(" 💡 CAC BAN O MAY KHAC (KHAC NHA/KHAC MANG) CHI CAN TRUY CAP VAO:");
+        System.out.println(" [*] CAC BAN O MAY KHAC (KHAC NHA/KHAC MANG) CHI CAN TRUY CAP VAO:");
         System.out.println("    1. Bo phieu cu tri:  http://<IP_MAY_NAY>:" + port + "/vote");
         System.out.println("    2. So do 10 Nodes:   http://<IP_MAY_NAY>:" + port + "/nodes");
         System.out.println("    3. So Cai Explorer:  http://<IP_MAY_NAY>:" + port);

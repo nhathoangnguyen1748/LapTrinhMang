@@ -10,15 +10,15 @@ import java.util.Enumeration;
 import java.util.Scanner;
 
 /**
- * Khởi chạy 1 Node P2P độc lập trên máy tính cá nhân.
- * Hỗ trợ chạy phân tán trên nhiều máy tính khác nhau qua LAN, Wi-Fi hoặc Internet (Tailscale/VPN).
+ * Khoi chay 1 Node P2P doc lap tren may tinh ca nhan.
+ * Ho tro chay phan tan tren nhieu may tinh khac nhau qua LAN, Wi-Fi hoac Internet (Tailscale/Ngrok).
  */
 public class StandaloneNode {
 
     public static void main(String[] args) {
         System.out.println("=========================================================================");
-        System.out.println("   KHỞI CHẠY NÚT MẠNG P2P BLOCKCHAIN ĐỘC LẬP (STANDALONE P2P NODE)       ");
-        System.out.println("   Nhóm: Nguyễn Hoàng Nhật - Nguyễn Đỗ Trung Lương - Lê Quang Minh       ");
+        System.out.println("   KHOI CHAY NUT MANG P2P BLOCKCHAIN DOC LAP (STANDALONE P2P NODE)       ");
+        System.out.println("   Nhom: Nguyen Hoang Nhat - Nguyen Do Trung Luong - Le Quang Minh       ");
         System.out.println("=========================================================================");
 
         Scanner scanner = new Scanner(System.in);
@@ -30,10 +30,10 @@ public class StandaloneNode {
         if (args != null && args.length >= 1 && "seed".equalsIgnoreCase(args[0])) {
             nodeId = "Seed-Gateway (Hoang Nhat)";
             port = (args.length >= 2) ? Integer.parseInt(args[1]) : 8001;
-            System.out.println("👉 [CHẾ ĐỘ SEED NODE] Khởi chạy làm máy chủ Gateway tại cổng " + port);
+            System.out.println("-> [CHE DO SEED NODE] Khoi chay lam may chu Gateway tai cong " + port);
         } else if (args != null && args.length >= 1 && ("auto".equalsIgnoreCase(args[0]) || "peer".equalsIgnoreCase(args[0]))) {
             nodeId = "Peer-" + System.getProperty("user.name", "Worker") + "-" + (System.currentTimeMillis() % 1000);
-            port = 0; // Tự động chọn cổng trống
+            port = 0; // Tu dong chon cong trong
             java.io.File seedFile = new java.io.File("peer_seed.txt");
             if (seedFile.exists()) {
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(seedFile, java.nio.charset.StandardCharsets.UTF_8))) {
@@ -49,15 +49,15 @@ public class StandaloneNode {
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println("⚠️ Không đọc được peer_seed.txt: " + e.getMessage());
+                    System.out.println("[!] Khong doc duoc peer_seed.txt: " + e.getMessage());
                 }
             }
             if (peerHost.isEmpty()) {
                 peerHost = "127.0.0.1";
                 peerPort = 8001;
             }
-            System.out.println("👉 [CHẾ ĐỘ TỰ ĐỘNG THAM GIA NODE - 1 CLICK]");
-            System.out.printf("   Tên Node: %s | Đang kết nối tới Seed: %s:%d\n", nodeId, peerHost, peerPort);
+            System.out.println("-> [CHE DO TU DONG THAM GIA NODE - 1 CLICK]");
+            System.out.printf("   Ten Node: %s | Dang ket noi toi Seed: %s:%d\n", nodeId, peerHost, peerPort);
         } else if (args != null && args.length >= 2) {
             nodeId = args[0];
             port = Integer.parseInt(args[1]);
@@ -66,26 +66,26 @@ public class StandaloneNode {
                 peerPort = Integer.parseInt(args[3]);
             }
         } else {
-            System.out.println("\nChọn vai trò máy của bạn trong nhóm 3 người:");
-            System.out.println("  [1] Máy 1 - Nguyễn Hoàng Nhật (Trạm Gateway & Điều Phối - Port 8001)");
-            System.out.println("  [2] Máy 2 - Nguyễn Đỗ Trung Lương (Nút Thợ Đào PoW - Port 8002)");
-            System.out.println("  [3] Máy 3 - Lê Quang Minh (Nút Kiểm Toán & Sổ Cái - Port 8003)");
-            System.out.println("  [4] Tùy chỉnh tên Node và Cổng TCP");
-            System.out.println("  [5] Tự động tham gia từ file cấu hình peer_seed.txt");
-            System.out.print("\n👉 Nhập lựa chọn của bạn (1-5) [Mặc định 1]: ");
+            System.out.println("\nChon vai tro may cua ban trong nhom 3 nguoi:");
+            System.out.println("  [1] May 1 - Nguyen Hoang Nhat (Tram Gateway & Dieu Phoi - Port 8001)");
+            System.out.println("  [2] May 2 - Nguyen Do Trung Luong (Nut Tho Dao PoW - Port 8002)");
+            System.out.println("  [3] May 3 - Le Quang Minh (Nut Kiem Toan & So Cai - Port 8003)");
+            System.out.println("  [4] Tuy chinh ten Node va Cong TCP");
+            System.out.println("  [5] Tu dong tham gia tu file cau hinh peer_seed.txt");
+            System.out.print("\n-> Nhap lua chon cua ban (1-5) [Mac dinh 1]: ");
             String choice = scanner.nextLine().trim();
 
             if ("2".equals(choice)) {
                 nodeId = "Node-2 (Trung Luong)";
                 port = 8002;
-                System.out.print("👉 Nhập địa chỉ IP của Máy 1 (Nhấn Enter nếu là localhost): ");
+                System.out.print("-> Nhap dia chi IP cua May 1 (Nhan Enter neu la localhost): ");
                 peerHost = scanner.nextLine().trim();
                 if (peerHost.isEmpty()) peerHost = "127.0.0.1";
                 peerPort = 8001;
             } else if ("3".equals(choice)) {
                 nodeId = "Node-3 (Quang Minh)";
                 port = 8003;
-                System.out.print("👉 Nhập địa chỉ IP của Máy 1 (Nhấn Enter nếu là localhost): ");
+                System.out.print("-> Nhap dia chi IP cua May 1 (Nhan Enter neu la localhost): ");
                 peerHost = scanner.nextLine().trim();
                 if (peerHost.isEmpty()) peerHost = "127.0.0.1";
                 peerPort = 8001;
@@ -113,16 +113,16 @@ public class StandaloneNode {
                     peerPort = 8001;
                 }
             } else if ("4".equals(choice)) {
-                System.out.print("Tên Node: ");
+                System.out.print("Ten Node: ");
                 nodeId = scanner.nextLine().trim();
                 if (nodeId.isEmpty()) nodeId = "Custom-Node";
-                System.out.print("Cổng TCP lắng nghe: ");
+                System.out.print("Cong TCP lang nghe: ");
                 String pStr = scanner.nextLine().trim();
                 port = pStr.isEmpty() ? 8001 : Integer.parseInt(pStr);
-                System.out.print("IP của máy Peer cần kết nối (Bỏ trống nếu là máy chủ): ");
+                System.out.print("IP cua may Peer can ket noi (Bo trong neu la may chu): ");
                 peerHost = scanner.nextLine().trim();
                 if (!peerHost.isEmpty()) {
-                    System.out.print("Cổng TCP của Peer: ");
+                    System.out.print("Cong TCP cua Peer: ");
                     peerPort = Integer.parseInt(scanner.nextLine().trim());
                 }
             } else {
@@ -139,19 +139,19 @@ public class StandaloneNode {
             printLocalIps(node.getPort());
 
             if (!peerHost.isEmpty() && peerPort > 0) {
-                System.out.printf("\n[CONNECT] Đang kết nối TCP tới Peer %s:%d...\n", peerHost, peerPort);
+                System.out.printf("\n[CONNECT] Dang ket noi TCP toi Peer %s:%d...\n", peerHost, peerPort);
                 boolean ok = node.connectToPeer(peerHost, peerPort);
                 if (ok) {
-                    System.out.println("✅ Kết nối TCP Socket thành công! Đang đồng bộ Sổ Cái...");
+                    System.out.println("[OK] Ket noi TCP Socket thanh cong! Dang dong bo So Cai...");
                 } else {
-                    System.out.println("⚠️ Chưa thể kết nối tới Peer. Node vẫn hoạt động và sẵn sàng nhận kết nối đến.");
+                    System.out.println("[!] Chua the ket noi toi Peer. Node van hoat dong va san sang nhan ket noi den.");
                 }
             }
 
             printHelp();
 
             while (node.isRunning()) {
-                System.out.print("\n[" + nodeId + "] Nhập lệnh (1-5, 'help'): ");
+                System.out.print("\n[" + nodeId + "] Nhap lenh (1-5, 'help'): ");
                 if (!scanner.hasNextLine()) {
                     Thread.sleep(500);
                     continue;
@@ -159,37 +159,37 @@ public class StandaloneNode {
                 String cmd = scanner.nextLine().trim().toLowerCase();
 
                 if ("5".equals(cmd) || "exit".equals(cmd) || "quit".equals(cmd)) {
-                    System.out.println("Đang dừng Node P2P...");
+                    System.out.println("Dang dung Node P2P...");
                     node.close();
                     break;
                 } else if ("1".equals(cmd) || "tx".equals(cmd) || "vote".equals(cmd)) {
-                    System.out.print("  Nhập tên người gửi (hoặc MSSV cử tri): ");
+                    System.out.print("  Nhap ten nguoi gui (hoac MSSV cu tri): ");
                     String sender = scanner.nextLine().trim();
                     if (sender.isEmpty()) sender = "Voter_" + (System.currentTimeMillis() % 1000);
-                    System.out.print("  Nhập người nhận (hoặc ứng cử viên): ");
+                    System.out.print("  Nhap nguoi nhan (hoac ung cu vien): ");
                     String recipient = scanner.nextLine().trim();
                     if (recipient.isEmpty()) recipient = "Le Quang Minh";
                     Transaction tx = Transaction.create(sender, recipient, 10.0);
                     node.broadcastTransaction(tx);
-                    System.out.println("🚀 [ĐÃ PHÁT TÁN] Giao dịch " + tx.txId().substring(0, 8) + " đã gửi qua mạng TCP tới các máy khác!");
+                    System.out.printf("[DA PHAT TAN] Giao dich %s da gui qua mang TCP toi cac may khac!\n", tx.txId().substring(0, 8));
                 } else if ("2".equals(cmd) || "mine".equals(cmd)) {
-                    System.out.println("⚡ [POW MINING] Đang kích hoạt Java 21 Virtual Threads giải bài toán băm...");
+                    System.out.println("[POW MINING] Dang kich hoat Java 21 Virtual Threads giai bai toan bam...");
                     long t0 = System.currentTimeMillis();
                     com.pow.simulator.consensus.MiningResult result = node.mineAndBroadcast();
                     long dt = System.currentTimeMillis() - t0;
                     if (result != null && result.success()) {
                         Block tip = result.minedBlock();
-                        System.out.printf("🎉 [ĐÃ ĐÀO KHỐI #%d THÀNH CÔNG] Nonce: %d | Hash: %s | Tốc độ: %.2f H/s | Thời gian: %d ms\n",
+                        System.out.printf("[DAO KHOI #%d THANH CONG] Nonce: %d | Hash: %s | Toc do: %.2f H/s | Thoi gian: %d ms\n",
                                 tip.index(), tip.nonce(), tip.getShortHash(), result.hashrate(), dt);
-                        System.out.println("📡 Khối mới đã phát tán qua TCP Socket tới tất cả các máy trong mạng!");
+                        System.out.println("[BROADCAST] Khoi moi da phat tan qua TCP Socket toi tat ca cac may trong mang!");
                     } else {
-                        System.out.println("⚠️ Không có giao dịch trong Mempool hoặc khối đào không thành công.");
+                        System.out.println("[!] Khong co giao dich trong Mempool hoac khoi dao khong thanh cong.");
                     }
                 } else if ("3".equals(cmd) || "chain".equals(cmd)) {
-                    System.out.println("\n========== SỔ CÁI CHUỖI KHỐI HIỆN TẠI ==========");
-                    System.out.printf("Chiều cao: %d khối | Độ khó: %d bits\n",
+                    System.out.println("\n========== SO CAI CHUOI KHOI HIEN TAI ==========");
+                    System.out.printf("Chieu cao: %d khoi | Do kho: %d bits\n",
                             node.getBlockchain().size(), node.getBlockchain().getLatestBlock().difficultyBits());
-                    System.out.println("Tính toàn vẹn: " + (node.getBlockchain().isChainValid() ? "✅ 100% HỢP LỆ" : "❌ BỊ LỖI"));
+                    System.out.println("Tinh toan ven: " + (node.getBlockchain().isChainValid() ? "[OK] 100% HOP LE" : "[FAIL] BI LOI"));
                     for (int i = 0; i < node.getBlockchain().size(); i++) {
                         Block b = node.getBlockchain().getBlock(i);
                         System.out.printf("  #%d | Nonce: %-8d | Hash: %s | Pre: %s | Txs: %d\n",
@@ -197,16 +197,16 @@ public class StandaloneNode {
                     }
                     System.out.println("================================================");
                 } else if ("4".equals(cmd) || "peers".equals(cmd)) {
-                    System.out.println("\n========== DANH SÁCH PEERS KẾT NỐI TCP ==========");
-                    System.out.println("Số lượng peer đang kết nối: " + node.getPeerCount());
+                    System.out.println("\n========== DANH SACH PEERS KET NOI TCP ==========");
+                    System.out.println("So luong peer dang ket noi: " + node.getPeerCount());
                     for (String addr : node.getConnectedPeerAddresses()) {
-                        System.out.println("  🔗 " + addr);
+                        System.out.println("  [PEER] " + addr);
                     }
                     System.out.println("=================================================");
                 } else if ("connect".equals(cmd)) {
-                    System.out.print("  Nhập IP Peer: ");
+                    System.out.print("  Nhap IP Peer: ");
                     String h = scanner.nextLine().trim();
-                    System.out.print("  Nhập Cổng TCP Peer: ");
+                    System.out.print("  Nhap Cong TCP Peer: ");
                     int p = Integer.parseInt(scanner.nextLine().trim());
                     node.connectToPeer(h, p);
                 } else {
@@ -215,25 +215,25 @@ public class StandaloneNode {
             }
 
         } catch (Exception e) {
-            System.err.println("❌ Lỗi Node P2P: " + e.getMessage());
+            System.err.println("[ERROR] Loi Node P2P: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private static void printHelp() {
-        System.out.println("\n----------------- BẢNG LỆNH ĐIỀU KHIỂN -----------------");
-        System.out.println("  [1] hoặc 'tx'    : Tạo và phát tán giao dịch / phiếu bầu qua TCP");
-        System.out.println("  [2] hoặc 'mine'  : Tự đào khối PoW và phát tán SYNC_BLOCK");
-        System.out.println("  [3] hoặc 'chain' : Xem sổ cái và kiểm toán tính toàn vẹn");
-        System.out.println("  [4] hoặc 'peers' : Xem các máy tính đang kết nối TCP");
-        System.out.println("  [5] hoặc 'exit'  : Dừng và ngắt kết nối Node");
-        System.out.println("  'connect'        : Kết nối thêm tới 1 máy khác qua IP:Port");
+        System.out.println("\n----------------- BANG LENH DIEU KHIEN -----------------");
+        System.out.println("  [1] hoac 'tx'    : Tao va phat tan giao dich / phieu bau qua TCP");
+        System.out.println("  [2] hoac 'mine'  : Tu dao khoi PoW va phat tan SYNC_BLOCK");
+        System.out.println("  [3] hoac 'chain' : Xem so cai va kiem toan tinh toan ven");
+        System.out.println("  [4] hoac 'peers' : Xem cac may tinh dang ket noi TCP");
+        System.out.println("  [5] hoac 'exit'  : Dung va ngat ket noi Node");
+        System.out.println("  'connect'        : Ket noi them toi 1 may khac qua IP:Port");
         System.out.println("---------------------------------------------------------");
     }
 
     private static void printLocalIps(int port) {
-        System.out.println("\n[TCP SERVER] Node đang lắng nghe kết nối tại cổng: " + port);
-        System.out.println("Địa chỉ IP của máy này để máy khác kết nối đến:");
+        System.out.println("\n[TCP SERVER] Node dang lang nghe ket noi tai cong: " + port);
+        System.out.println("Dia chi IP cua may nay de may khac ket noi den:");
         System.out.println("  - Localhost: 127.0.0.1:" + port);
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();

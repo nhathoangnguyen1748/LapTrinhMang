@@ -19,7 +19,7 @@ public class NetworkDemo {
         System.out.println("""
             =============================================================
              DISTRIBUTED P2P BLOCKCHAIN NETWORK (TCP SOCKETS CLUSTER)
-                     LẬP TRÌNH MẠNG  |  JAVA 21 VIRTUAL THREADS
+                     Láº¬P TRÃŒNH Máº NG  |  JAVA 21 VIRTUAL THREADS
             =============================================================
             * Reliable Length-Prefixed Stream Framing over TCP Sockets
             * Asynchronous ServerSocket Concurrency using Virtual Threads

@@ -106,7 +106,7 @@ public class App {
         System.out.println("""
             =============================================================
              PRODUCTION P2P PROOF-OF-WORK BLOCKCHAIN & LEDGER NETWORK
-                     LẬP TRÌNH MẠNG (TCP SOCKETS)  |  JDK 21+  |  NetBeans
+                     Láº¬P TRÃŒNH Máº NG (TCP SOCKETS)  |  JDK 21+  |  NetBeans
             =============================================================
             * Peer-to-Peer TCP/IP Socket Cluster with Length-Prefixed Framing
             * Asynchronous ServerSocket Concurrency (Java 21 Virtual Threads)

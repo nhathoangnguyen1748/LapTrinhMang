@@ -2,8 +2,8 @@
 chcp 65001 >nul
 title Blockchain E-Voting Node (HUTECH)
 echo =========================================================================
-echo    HỆ THỐNG BẦU CỬ ĐIỆN TỬ BLOCKCHAIN P2P NODE (JAVA 21)
-echo    Nhóm: Nguyễn Hoàng Nhật (Lead) - Nguyễn Đỗ Trung Lương - Lê Quang Minh
+echo    HE THONG BAU CU DIEN TU BLOCKCHAIN P2P NODE (JAVA 21)
+echo    Nhom: Nguyen Hoang Nhat (Lead) - Nguyen Do Trung Luong - Le Quang Minh
 echo =========================================================================
 echo.
 
@@ -50,10 +50,10 @@ exit /b 1
 
 :RUN_NODE
 if exist "target\blockchain-evoting-node.jar" (
-    echo [INFO] Đang khởi chạy Node từ file JAR đóng gói: target\blockchain-evoting-node.jar...
+    echo [INFO] Dang khoi chay Node tu file JAR dong goi: target\blockchain-evoting-node.jar...
     "%JAVA_CMD%" -jar target\blockchain-evoting-node.jar %*
 ) else (
-    echo [INFO] Đang khởi chạy Node từ mã nguồn compiled classes...
+    echo [INFO] Dang khoi chay Node tu ma nguon compiled classes...
     "%JAVA_CMD%" -cp target\classes com.pow.simulator.web.WebLauncher %*
 )
 
