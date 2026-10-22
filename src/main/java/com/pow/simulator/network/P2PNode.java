@@ -371,6 +371,10 @@ public class P2PNode implements AutoCloseable {
         return connectedPeers.size();
     }
 
+    public Set<String> getConnectedPeerAddresses() {
+        return Collections.unmodifiableSet(connectedPeers.keySet());
+    }
+
     public boolean isRunning() {
         return isRunning.get();
     }

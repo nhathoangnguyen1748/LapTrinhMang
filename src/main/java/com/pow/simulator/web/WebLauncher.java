@@ -33,8 +33,8 @@ public class WebLauncher {
 
             String url = "http://localhost:" + port;
             System.out.println();
-            System.out.println(" >>> TRUY CAP GIAO DIEN TAI: " + url + " <<<");
-            System.out.println();
+            printNetworkAccessGuide(port);
+
 
             // Open browser automatically
             tryOpenBrowser(url);
@@ -94,5 +94,38 @@ public class WebLauncher {
         } catch (Exception e) {
             System.out.println("Khong the tu dong mo trinh duyet. Vui long mo thu cong: " + url);
         }
+    }
+    public static void printNetworkAccessGuide(int port) {
+        System.out.println("=========================================================================");
+        System.out.println(" 🌐 DIA CHI TRUY CAP GIAO DIEN (HO TRO DA MAY TINH & DIEN THOAI):");
+        System.out.println("    - May nay (Localhost):       http://localhost:" + port);
+        try {
+            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                java.net.NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    java.net.InetAddress addr = addresses.nextElement();
+                    if (addr instanceof java.net.Inet4Address) {
+                        String ip = addr.getHostAddress();
+                        String name = iface.getDisplayName().toLowerCase();
+                        String desc = "Mang Noi Bo (LAN/Wi-Fi)";
+                        if (name.contains("tailscale") || ip.startsWith("100.")) {
+                            desc = "Mang Ao P2P Tailscale (Internet)";
+                        } else if (name.contains("zerotier")) {
+                            desc = "Mang Ao P2P ZeroTier (Internet)";
+                        }
+                        System.out.printf("    - %-27s http://%s:%d\n", desc + ":", ip, port);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        System.out.println("-------------------------------------------------------------------------");
+        System.out.println(" 💡 CAC BAN O MAY KHAC (KHAC NHA/KHAC MANG) CHI CAN TRUY CAP VAO:");
+        System.out.println("    1. Bo phieu cu tri:  http://<IP_MAY_NAY>:" + port + "/vote");
+        System.out.println("    2. So do 10 Nodes:   http://<IP_MAY_NAY>:" + port + "/nodes");
+        System.out.println("    3. So Cai Explorer:  http://<IP_MAY_NAY>:" + port);
+        System.out.println("=========================================================================");
     }
 }
