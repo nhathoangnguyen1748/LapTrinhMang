@@ -1,0 +1,6 @@
+# DIA CHI IP VA PORT CUA MAY CHU SEED NODE (MAY 1)
+# 1. Neu cung Wifi / LAN: Dien dia chi LAN (vi du 192.168.1.15:8001)
+# 2. Neu khac mang / o nha rieng dung Tailscale: Dien dia chi Tailscale (vi du 100.85.12.34:8001)
+# 3. Neu dung Ngrok: Dien dia chi ngrok (vi du 4.tcp.ngrok.io:12345)
+# 4. Neu test tren cung 1 may: De nguyen 127.0.0.1:8001
+127.0.0.1:8001

@@ -27,7 +27,38 @@ public class StandaloneNode {
         String peerHost = "";
         int peerPort = 0;
 
-        if (args != null && args.length >= 2) {
+        if (args != null && args.length >= 1 && "seed".equalsIgnoreCase(args[0])) {
+            nodeId = "Seed-Gateway (Hoang Nhat)";
+            port = (args.length >= 2) ? Integer.parseInt(args[1]) : 8001;
+            System.out.println("👉 [CHẾ ĐỘ SEED NODE] Khởi chạy làm máy chủ Gateway tại cổng " + port);
+        } else if (args != null && args.length >= 1 && ("auto".equalsIgnoreCase(args[0]) || "peer".equalsIgnoreCase(args[0]))) {
+            nodeId = "Peer-" + System.getProperty("user.name", "Worker") + "-" + (System.currentTimeMillis() % 1000);
+            port = 0; // Tự động chọn cổng trống
+            java.io.File seedFile = new java.io.File("peer_seed.txt");
+            if (seedFile.exists()) {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(seedFile, java.nio.charset.StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty() || line.startsWith("#")) continue;
+                        String[] parts = line.split(":");
+                        if (parts.length >= 2) {
+                            peerHost = parts[0].trim();
+                            peerPort = Integer.parseInt(parts[1].trim());
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("⚠️ Không đọc được peer_seed.txt: " + e.getMessage());
+                }
+            }
+            if (peerHost.isEmpty()) {
+                peerHost = "127.0.0.1";
+                peerPort = 8001;
+            }
+            System.out.println("👉 [CHẾ ĐỘ TỰ ĐỘNG THAM GIA NODE - 1 CLICK]");
+            System.out.printf("   Tên Node: %s | Đang kết nối tới Seed: %s:%d\n", nodeId, peerHost, peerPort);
+        } else if (args != null && args.length >= 2) {
             nodeId = args[0];
             port = Integer.parseInt(args[1]);
             if (args.length >= 4) {
@@ -40,7 +71,8 @@ public class StandaloneNode {
             System.out.println("  [2] Máy 2 - Nguyễn Đỗ Trung Lương (Nút Thợ Đào PoW - Port 8002)");
             System.out.println("  [3] Máy 3 - Lê Quang Minh (Nút Kiểm Toán & Sổ Cái - Port 8003)");
             System.out.println("  [4] Tùy chỉnh tên Node và Cổng TCP");
-            System.out.print("\n👉 Nhập lựa chọn của bạn (1-4) [Mặc định 1]: ");
+            System.out.println("  [5] Tự động tham gia từ file cấu hình peer_seed.txt");
+            System.out.print("\n👉 Nhập lựa chọn của bạn (1-5) [Mặc định 1]: ");
             String choice = scanner.nextLine().trim();
 
             if ("2".equals(choice)) {
@@ -57,6 +89,29 @@ public class StandaloneNode {
                 peerHost = scanner.nextLine().trim();
                 if (peerHost.isEmpty()) peerHost = "127.0.0.1";
                 peerPort = 8001;
+            } else if ("5".equals(choice)) {
+                nodeId = "Peer-" + System.getProperty("user.name", "Worker") + "-" + (System.currentTimeMillis() % 1000);
+                port = 0;
+                java.io.File seedFile = new java.io.File("peer_seed.txt");
+                if (seedFile.exists()) {
+                    try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(seedFile, java.nio.charset.StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            line = line.trim();
+                            if (line.isEmpty() || line.startsWith("#")) continue;
+                            String[] parts = line.split(":");
+                            if (parts.length >= 2) {
+                                peerHost = parts[0].trim();
+                                peerPort = Integer.parseInt(parts[1].trim());
+                                break;
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
+                if (peerHost.isEmpty()) {
+                    peerHost = "127.0.0.1";
+                    peerPort = 8001;
+                }
             } else if ("4".equals(choice)) {
                 System.out.print("Tên Node: ");
                 nodeId = scanner.nextLine().trim();
@@ -81,7 +136,7 @@ public class StandaloneNode {
             P2PNode node = new P2PNode(nodeId, port, diffBits);
             node.start();
 
-            printLocalIps(port);
+            printLocalIps(node.getPort());
 
             if (!peerHost.isEmpty() && peerPort > 0) {
                 System.out.printf("\n[CONNECT] Đang kết nối TCP tới Peer %s:%d...\n", peerHost, peerPort);
@@ -97,6 +152,10 @@ public class StandaloneNode {
 
             while (node.isRunning()) {
                 System.out.print("\n[" + nodeId + "] Nhập lệnh (1-5, 'help'): ");
+                if (!scanner.hasNextLine()) {
+                    Thread.sleep(500);
+                    continue;
+                }
                 String cmd = scanner.nextLine().trim().toLowerCase();
 
                 if ("5".equals(cmd) || "exit".equals(cmd) || "quit".equals(cmd)) {
