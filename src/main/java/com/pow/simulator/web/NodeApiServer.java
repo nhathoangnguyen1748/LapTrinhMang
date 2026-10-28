@@ -176,6 +176,7 @@ public class NodeApiServer implements AutoCloseable {
         httpServer.createContext("/api/cluster/seed-votes", this::handleClusterSeedVotes);
         httpServer.createContext("/api/cluster/continuous/start", this::handleContinuousStart);
         httpServer.createContext("/api/cluster/continuous/stop", this::handleContinuousStop);
+        httpServer.createContext("/api/cluster/join", this::handleClusterJoin);
 
         httpServer.createContext("/", this::handleStatic);
     }
@@ -975,6 +976,29 @@ public class NodeApiServer implements AutoCloseable {
             logEvent("❌ Lỗi cuộc đua tìm hash PoW: " + e.getMessage());
             sendResponse(exchange, 500, "application/json", "{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
         }
+    }
+
+    private void handleClusterJoin(HttpExchange exchange) throws IOException {
+        if (handleCors(exchange)) return;
+        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+            sendResponse(exchange, 405, "application/json", "{\"error\":\"Method not allowed\"}");
+            return;
+        }
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        String name = extractJsonField(body, "name", "").trim();
+        String role = extractJsonField(body, "role", "").trim();
+        if (name.isBlank()) name = "Máy " + (clusterNodes.size() + 1) + ": Thợ Đào Mới";
+        if (role.isBlank()) role = "Nút Thợ Đào PoW Cá Nhân";
+        int nextIndex = clusterNodes.size() + 1;
+        String id = "Node-" + nextIndex;
+        int port = 8000 + nextIndex;
+        String hashRate = (260 + (int)(Math.random() * 120)) + " KH/s";
+        PeerNode newNode = new PeerNode(id, name, role, port, this.blockchain.copy(), hashRate);
+        clusterNodes.add(newNode);
+        logEvent("🚀 [PEER MỚI THAM GIA MẠNG] " + name + " (" + role + ") đã kết nối vào Cụm Blockchain P2P tại Port " + port + "!");
+        String resp = String.format("{\"success\":true,\"id\":\"%s\",\"name\":\"%s\",\"role\":\"%s\",\"port\":%d,\"hashRate\":\"%s\",\"totalNodes\":%d,\"message\":\"Chúc mừng! Bạn đã tham gia thành công vào mạng lưới với định danh " + id + "\"}",
+                id, escapeJson(name), escapeJson(role), port, hashRate, clusterNodes.size());
+        sendResponse(exchange, 200, "application/json", resp);
     }
 
     private boolean handleCors(HttpExchange exchange) throws IOException {

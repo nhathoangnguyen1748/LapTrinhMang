@@ -394,6 +394,15 @@ public final class NodeClusterHtmlTemplate {
                 <span class="text-xs text-slate-400 font-mono">2 Hàng &times; 5 Cột</span>
             </div>
 
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <span id="nodeTotalBadge" class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-mono">10 Nodes Active</span>
+                </div>
+                <button onclick="openJoinNodeModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-xs hover:shadow-md transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>➕ Đăng Ký Tham Gia Node Mới</span>
+                </button>
+            </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="nodesGrid">
                 <!-- 10 Thẻ máy sẽ được sinh ra chuẩn mực tại đây -->
             </div>
@@ -427,6 +436,41 @@ public final class NodeClusterHtmlTemplate {
             </div>
         </div>
 
+        <!-- MODAL DANG KY THAM GIA NODE MOI -->
+        <div id="joinNodeModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 font-sans">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🚀</span>
+                        <h3 class="text-base font-bold text-slate-900">Đăng Ký Nút Mạng (Node) Mới</h3>
+                    </div>
+                    <button onclick="closeJoinNodeModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">&times;</button>
+                </div>
+                
+                <div class="mt-4 space-y-4 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tên Máy / Người Tham Gia:</label>
+                        <input type="text" id="newNodeName" placeholder="Ví dụ: Nguyễn Hoàng Nhật (Miner #11)" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Vai Trò Nút Mạng:</label>
+                        <select id="newNodeRole" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans">
+                            <option value="Nút Thợ Đào PoW Cá Nhân">⚡ Nút Thợ Đào PoW Cá Nhân (Miner Node)</option>
+                            <option value="Nút Kiểm Toán & Sổ Cái Độc Lập">🛡️ Nút Kiểm Toán & Sổ Cái Độc Lập (Auditor Node)</option>
+                            <option value="Trạm Bỏ Phiếu Cử Tri Mở Rộng">🗳️ Trạm Bỏ Phiếu Cử Tri Mở Rộng (Voter Station)</option>
+                        </select>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800">
+                        💡 Sau khi tham gia, máy của bạn sẽ được cấp 1 Port TCP ảo, đồng bộ chuỗi khối và cùng tham gia giải bài toán PoW với cụm mạng!
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2.5">
+                    <button onclick="closeJoinNodeModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">Hủy</button>
+                    <button onclick="submitJoinNode()" id="btnSubmitJoinNode" class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition cursor-pointer">Xác Nhận Tham Gia</button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- FOOTER HỆ THỐNG -->
@@ -1782,6 +1826,56 @@ public final class NodeClusterHtmlTemplate {
                 }
 
                 if (data.cluster && data.cluster.length > 0) {
+                    const badge = document.getElementById('nodeTotalBadge');
+                    if (badge) badge.textContent = data.cluster.length + ' Nodes Active';
+
+                    const grid = document.getElementById('nodesGrid');
+                    if (grid && data.cluster.length > grid.children.length) {
+                        for (let i = grid.children.length; i < data.cluster.length; i++) {
+                            const node = data.cluster[i];
+                            const card = document.createElement('div');
+                            card.id = 'card-' + node.id;
+                            card.className = 'node-card bg-white border border-blue-200 rounded-2xl p-3 flex flex-col justify-between space-y-2 shadow-xs cursor-pointer hover:border-blue-400 transition';
+                            card.setAttribute('title', 'Nhấp để ' + node.name + ' (:' + node.port + ') độc lập giải PoW');
+                            card.onclick = () => mineSingleNode(node.id);
+                            card.innerHTML = `
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <span class="text-[9px] font-mono font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">PORT ${node.port}</span>
+                                        <h3 class="text-xs font-bold text-slate-900 mt-1">${node.name}</h3>
+                                        <p class="text-[9px] text-slate-400 font-medium">${node.role}</p>
+                                    </div>
+                                    <span id="status-${node.id}" class="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">${node.status || 'ONLINE'}</span>
+                                </div>
+                                <div class="space-y-1 bg-slate-50 border border-slate-200/70 rounded-xl p-2 text-[10.5px] font-mono">
+                                    <div class="flex justify-between text-slate-500">
+                                        <span class="font-sans text-[10px]">Tốc độ:</span>
+                                        <span class="text-slate-800 font-bold">${node.hashRate || '280 KH/s'}</span>
+                                    </div>
+                                    <div class="flex justify-between text-slate-500">
+                                        <span class="font-sans text-[10px]">Khối đã tìm:</span>
+                                        <span id="mined-${node.id}" class="text-slate-900 font-bold">${node.blocksMined || 0} blocks</span>
+                                    </div>
+                                    <div class="flex justify-between text-slate-500">
+                                        <span class="font-sans text-[10px]">Mempool:</span>
+                                        <span id="mem-${node.id}" class="text-blue-700 font-bold">${node.mempoolCount || 0} phiếu</span>
+                                    </div>
+                                    <div class="flex justify-between text-slate-500">
+                                        <span class="font-sans text-[10px]">Chiều cao:</span>
+                                        <span id="height-${node.id}" class="text-slate-800 font-bold">#${node.blockCount > 0 ? (node.blockCount - 1) : 0}</span>
+                                    </div>
+                                </div>
+                                <div id="winner-tag-${node.id}" class="hidden text-center py-1 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-[10px] font-mono font-bold">
+                                    ĐÃ TÌM ĐƯỢC HASH
+                                </div>
+                                <div class="text-[9px] text-blue-600 font-medium text-center pt-1 border-t border-slate-100 flex items-center justify-center gap-1 font-sans">
+                                    <span>⚡</span> <span>Bấm để khai thác độc lập</span>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        }
+                    }
+
                     data.cluster.forEach(node => {
                         const mEl = document.getElementById('mined-' + node.id);
                         const memEl = document.getElementById('mem-' + node.id);
@@ -1827,6 +1921,54 @@ public final class NodeClusterHtmlTemplate {
                     });
                 }
             } catch (ignored) {}
+        }
+
+        function openJoinNodeModal() {
+            const m = document.getElementById('joinNodeModal');
+            if (m) {
+                m.classList.remove('hidden');
+                document.getElementById('newNodeName').focus();
+            }
+        }
+
+        function closeJoinNodeModal() {
+            const m = document.getElementById('joinNodeModal');
+            if (m) m.classList.add('hidden');
+        }
+
+        async function submitJoinNode() {
+            const nameInput = document.getElementById('newNodeName');
+            const roleInput = document.getElementById('newNodeRole');
+            const name = nameInput.value.trim();
+            const role = roleInput.value;
+            const btn = document.getElementById('btnSubmitJoinNode');
+            if (!name) {
+                alert('Vui lòng nhập tên máy hoặc tên của bạn!');
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = 'Đang gia nhập mạng...';
+            try {
+                const res = await fetch('/api/cluster/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, role: role })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('🎉 ' + data.message + ' (Port ' + data.port + ', Hashrate ' + data.hashRate + ')');
+                    closeJoinNodeModal();
+                    nameInput.value = '';
+                    fetchClusterState();
+                } else {
+                    alert('⚠️ Lỗi: ' + (data.error || 'Không thể gia nhập'));
+                }
+            } catch (err) {
+                alert('❌ Lỗi kết nối: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Xác Nhận Tham Gia';
+            }
         }
 
         // KHỞI TẠO HỆ THỐNG
