@@ -13,7 +13,12 @@ public class WebLauncher {
 
     public static void main(String[] args) {
         int port = 8000;
-        if (args != null && args.length > 0) {
+        String envPort = System.getenv("PORT");
+        if (envPort != null && !envPort.isBlank()) {
+            try {
+                port = Integer.parseInt(envPort.trim());
+            } catch (Exception ignored) {}
+        } else if (args != null && args.length > 0) {
             try {
                 port = Integer.parseInt(args[0]);
             } catch (Exception ignored) {}
@@ -79,6 +84,7 @@ public class WebLauncher {
     }
 
     public static void tryOpenBrowser(String url) {
+        if (System.getenv("PORT") != null || System.getenv("RENDER") != null) return;
         try {
             String os = System.getProperty("os.name", "").toLowerCase();
             if (os.contains("win")) {
