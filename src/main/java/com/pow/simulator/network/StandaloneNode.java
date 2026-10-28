@@ -180,7 +180,30 @@ public class StandaloneNode {
                 if (ok) {
                     System.out.println("[OK] Ket noi TCP Socket thanh cong! Dang dong bo So Cai...");
                 } else {
-                    System.out.println("[!] Chua the ket noi toi Peer. Node van hoat dong va san sang nhan ket noi den.");
+                    System.out.printf("[!] Chua the ket noi toi %s:%d\n", peerHost, peerPort);
+                    if ("127.0.0.1".equals(peerHost) || "localhost".equals(peerHost)) {
+                        System.out.print("-> Nhap dia chi IP cua May Chu Node (vi du 192.168.1.15 hoac IP Tailscale): ");
+                        try {
+                            if (scanner.hasNextLine()) {
+                                String customIp = scanner.nextLine().trim();
+                                if (!customIp.isEmpty()) {
+                                    if (customIp.contains(":")) {
+                                        String[] sp = customIp.split(":");
+                                        peerHost = sp[0].trim();
+                                        peerPort = Integer.parseInt(sp[1].trim());
+                                    } else {
+                                        peerHost = customIp;
+                                    }
+                                    System.out.printf("[RECONNECT] Dang thu ket noi TCP toi %s:%d...\n", peerHost, peerPort);
+                                    if (node.connectToPeer(peerHost, peerPort)) {
+                                        System.out.println("[OK] Ket noi TCP Socket thanh cong! Dang dong bo So Cai...");
+                                    } else {
+                                        System.out.println("[!] Van chua the ket noi. Node van se chay va san sang nhan ket noi den.");
+                                    }
+                                }
+                            }
+                        } catch (Exception ignored) {}
+                    }
                 }
             }
 
