@@ -68,6 +68,10 @@ frontend-nextjs/out/
 data/ledger/*.json
 data/ledger/*.tmp
 
+# Executables & Tools
+ngrok.exe
+*.exe
+
 # Temporary report locks & Python caches
 baocao/**/__pycache__/
 baocao/**/.~lock.*
