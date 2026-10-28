@@ -67,3 +67,11 @@ frontend-nextjs/out/
 # Blockchain Ledger Runtime Storage
 data/ledger/*.json
 data/ledger/*.tmp
+
+# Temporary report locks & Python caches
+baocao/**/__pycache__/
+baocao/**/.~lock.*
+baocao/**/*.tmp
+__pycache__/
+*.tmp
+.~lock.*
