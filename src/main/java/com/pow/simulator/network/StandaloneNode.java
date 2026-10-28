@@ -59,11 +59,47 @@ public class StandaloneNode {
             System.out.println("-> [CHE DO TU DONG THAM GIA NODE - 1 CLICK]");
             System.out.printf("   Ten Node: %s | Dang ket noi toi Seed: %s:%d\n", nodeId, peerHost, peerPort);
         } else if (args != null && args.length >= 2) {
-            nodeId = args[0];
-            port = Integer.parseInt(args[1]);
-            if (args.length >= 4) {
-                peerHost = args[2];
-                peerPort = Integer.parseInt(args[3]);
+            boolean firstIsInt = false;
+            int parsedPort0 = 0;
+            try {
+                parsedPort0 = Integer.parseInt(args[0]);
+                firstIsInt = true;
+            } catch (Exception ignored) {}
+
+            if (firstIsInt) {
+                port = parsedPort0;
+                nodeId = args[1];
+            } else {
+                nodeId = args[0];
+                try {
+                    port = Integer.parseInt(args[1]);
+                } catch (Exception ignored) {
+                    port = 8002;
+                }
+            }
+
+            if (args.length >= 3) {
+                String target = args[2].trim();
+                if (target.contains(":")) {
+                    String[] parts = target.split(":");
+                    peerHost = parts[0].trim();
+                    try {
+                        peerPort = Integer.parseInt(parts[1].trim());
+                    } catch (Exception ignored) {
+                        peerPort = 8001;
+                    }
+                } else {
+                    peerHost = target;
+                    if (args.length >= 4) {
+                        try {
+                            peerPort = Integer.parseInt(args[3].trim());
+                        } catch (Exception ignored) {
+                            peerPort = 8001;
+                        }
+                    } else {
+                        peerPort = 8001;
+                    }
+                }
             }
         } else {
             System.out.println("\nChon vai tro may cua ban trong nhom 3 nguoi:");

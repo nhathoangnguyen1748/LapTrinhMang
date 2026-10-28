@@ -12,6 +12,18 @@ import java.net.URI;
 public class WebLauncher {
 
     public static void main(String[] args) {
+        // Ho tro chay P2P Node doc lap khi truyen tham so
+        if (args != null && args.length >= 1) {
+            String first = args[0].trim().toLowerCase();
+            if (first.equals("node") || first.equals("peer") || first.equals("p2p") || first.equals("seed") || first.equals("auto") || args.length >= 2) {
+                String[] forwardArgs = (first.equals("node") || first.equals("peer") || first.equals("p2p"))
+                        ? java.util.Arrays.copyOfRange(args, 1, args.length)
+                        : args;
+                com.pow.simulator.network.StandaloneNode.main(forwardArgs);
+                return;
+            }
+        }
+
         int port = 8000;
         String envPort = System.getenv("PORT");
         if (envPort != null && !envPort.isBlank()) {
