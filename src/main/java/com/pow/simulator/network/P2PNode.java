@@ -233,6 +233,7 @@ public class P2PNode implements AutoCloseable {
             // Valid block: append to local chain
             blockchain.addBlock(block);
             mempool.removeAll(block.transactions());
+            saveToDisk();
             log(String.format("[%s] ACCEPTED Block #%d via TCP broadcast! [Hash: %s, Ledger Height: %d]",
                     nodeId, blockchain.size() - 1, block.getShortHash(), blockchain.size()));
 
@@ -258,6 +259,7 @@ public class P2PNode implements AutoCloseable {
         ValidationResult audit = BlockchainValidator.validate(candidateChain);
         if (audit.isValid() && candidateChain.size() > blockchain.size()) {
             blockchain.replaceChain(remoteBlocks);
+            saveToDisk();
             log(String.format("[%s] NAKAMOTO CONSENSUS: Local chain replaced with longer valid chain (Height: %d)!",
                     nodeId, blockchain.size()));
         } else {
@@ -308,6 +310,7 @@ public class P2PNode implements AutoCloseable {
         if (result.success()) {
             blockchain.addBlock(result.minedBlock());
             mempool.removeAll(txsToMine);
+            saveToDisk();
 
             log(String.format("[%s] MINED Block #%d! Nonce: %d | Time: %d ms | Hash: %s",
                     nodeId, result.minedBlock().index(), result.minedBlock().nonce(),
@@ -391,5 +394,10 @@ public class P2PNode implements AutoCloseable {
             }
             log(String.format("[%s] P2P Node stopped.", nodeId));
         }
+    }
+    private void saveToDisk() {
+        try {
+            com.pow.simulator.storage.LedgerStorage.defaultInstance().saveChain(blockchain);
+        } catch (Exception ignored) {}
     }
 }
